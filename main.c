@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 
-#define _TARGET "./test"
+#define _TARGET "./target"
 
 void famine(struct dirent *d, char *path){
 	char signature[] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0Famine 1.1 by mbrement and mgama";
