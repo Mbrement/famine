@@ -23,7 +23,7 @@ void famine(char *name, char *path)
 	static const char elf_magic[] = {0x7f, 'E', 'L', 'F'};
 	static const size_t elf_magic_size = sizeof(elf_magic);
 
-	char full_path[PATH_MAX + PATH_MAX + 1];
+	char full_path[PATH_MAX + 1 + PATH_MAX];
 	if (path != NULL)
 	{
 		strcpy(full_path, path);
