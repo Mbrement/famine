@@ -11,7 +11,7 @@ HEADERS			=	$(shell find $(HEADERS_DIR) -name "*.h") $(shell find $(MANDATORY_DI
 CC				=	gcc
 ASM				=	nasm
 RM				=	rm
-CFLAGS			=	-I$(HEADERS_DIR) -I$(MANDATORY_DIR) -g3 -O0 -Wall -Wextra -Werror
+CFLAGS			=	-I$(HEADERS_DIR) -I$(MANDATORY_DIR) -g3 -O0 #-Wall -Wextra -Werror
 
 NAME			=	famine
 
@@ -35,11 +35,15 @@ $(OBJ_DIR)/%.o: $(MANDATORY_DIR)/%.asm $(HEADERS)
 	@$(ASM) $(ASMFLAGS) $< -o $@
 	@printf ${UP}${CUT}
 
-all: $(NAME)
+all: kill $(NAME)
 
 $(NAME): $(OBJS) $(OBJS_ASM)
 	@$(CC) $(CFLAGS) $^ -o $(NAME)
 	@echo "$(GREEN)$(NAME) compiled!$(DEFAULT)"
+
+unsafe:
+	$(eval CFLAGS = -D FM_SECURITY=0)
+	@$(MAKE) -s all
 
 clean:
 	@echo "$(RED)Cleaning build folder$(DEFAULT)"
@@ -48,6 +52,9 @@ clean:
 fclean: clean
 	@echo "$(RED)Cleaning $(NAME)$(DEFAULT)"
 	@$(RM) -f $(NAME)
+
+kill:
+	-@pkill $(NAME)
 
 re: fclean all
 

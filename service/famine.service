@@ -1,0 +1,11 @@
+[Unit]
+Description=Famine by Mbrement and Mgama
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/famine --daemon
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
