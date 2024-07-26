@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
-/*   Updated: 2024/07/26 19:38:53 by mgama            ###   ########.fr       */
+/*   Updated: 2024/07/26 19:42:58 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
 	struct getopt_list_s optlist[] = {
         {"daemon", 'd', OPTPARSE_NONE},
         {"once", 'o', OPTPARSE_NONE},
-        {"multiple-instances", 'm', OPTPARSE_NONE},
+        {"multi-instances", 'm', OPTPARSE_NONE},
         {no_xsec, 0, OPTPARSE_REQUIRED},
         {0}
     };
