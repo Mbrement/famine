@@ -35,7 +35,7 @@ $(OBJ_DIR)/%.o: $(MANDATORY_DIR)/%.asm $(HEADERS)
 	@$(ASM) $(ASMFLAGS) $< -o $@
 	@printf ${UP}${CUT}
 
-all: kill $(NAME)
+all: $(NAME)
 
 $(NAME): $(OBJS) $(OBJS_ASM)
 	@$(CC) $(CFLAGS) $^ -o $(NAME)
@@ -56,6 +56,6 @@ fclean: clean
 kill:
 	-@pkill $(NAME)
 
-re: fclean all
+re: kill fclean all
 
 .PHONY: all lib clean fclean re

