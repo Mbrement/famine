@@ -69,4 +69,4 @@ kill:
 
 re: kill fclean all
 
-.PHONY: all lib clean fclean re
+.PHONY: all clean fclean re
