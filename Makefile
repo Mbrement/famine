@@ -9,6 +9,7 @@ OBJS			=	$(patsubst $(MANDATORY_DIR)%.c, $(OBJ_DIR)%.o, $(SRCS))
 
 ifeq ($(shell uname), Darwin)
 	OBJS += $(patsubst $(MANDATORY_DIR)%.m, $(OBJ_DIR)%.o, $(SRCS_OC))
+	OCFLAGS	=	-framework Foundation
 endif
 
 HEADERS			=	$(shell find $(HEADERS_DIR) -name "*.h")
@@ -17,7 +18,6 @@ CC				=	gcc
 ASM				=	nasm
 RM				=	rm
 CFLAGS			:=	-I$(HEADERS_DIR) -I$(MANDATORY_DIR) -g3 -O0 -Wall -Wextra -Werror
-OCFLAGS			=	-framework Foundation
 
 NAME			=	famine
 
