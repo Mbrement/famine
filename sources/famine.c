@@ -6,12 +6,14 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/01 03:10:10 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/01 03:15:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "famine.h"
+#ifdef __APPLE__
 #include "is_icloud.h"
+#endif /* __APPLE__ */
 
 struct s_famine g_famine;
 int g_exit = 0;
@@ -101,8 +103,10 @@ void famine(char *target, char *parent)
 	ft_verbose("%d: Checking %s%s%s\n", count, B_YELLOW, full_path, RESET);
 	count++;
 
+#ifdef __APPLE__
 	if (is_icloud_file(full_path))
 		return ;
+#endif /* __APPLE__ */
 
 	if (lstat(full_path, &statbuf) == -1)
 		return ;

@@ -5,7 +5,11 @@ OBJ_DIR			=	.objs
 SRCS			=	$(shell find $(MANDATORY_DIR) -name "*.c")
 SRCS_OC			=	$(shell find $(MANDATORY_DIR) -name "*.m")
 
-OBJS			=	$(patsubst $(MANDATORY_DIR)%.c, $(OBJ_DIR)%.o, $(SRCS)) $(patsubst $(MANDATORY_DIR)%.m, $(OBJ_DIR)%.o, $(SRCS_OC))
+OBJS			=	$(patsubst $(MANDATORY_DIR)%.c, $(OBJ_DIR)%.o, $(SRCS))
+
+ifeq ($(shell uname), Darwin)
+	OBJS += $(patsubst $(MANDATORY_DIR)%.m, $(OBJ_DIR)%.o, $(SRCS_OC))
+endif
 
 HEADERS			=	$(shell find $(HEADERS_DIR) -name "*.h")
 
