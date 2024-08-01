@@ -5,7 +5,7 @@
 
 /**
  * @brief Check if a file is stored in iCloud. If yes the file is not fully downloaded on the device.
- * In this case, if the download has not started yet, the file will be downloaded on the device and the
+ * In this case, opening the file will start downloading the file if it hasn't started yet, and the
  * process will be blocked until the download is complete.
  *
  * @param filePath The path to the file.

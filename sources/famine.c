@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/01 03:15:09 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/01 03:20:16 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,12 +40,9 @@ void cut_last_line(int text_length)
 {
 	int term_width = get_terminal_width() + 1;
 	int line_count = text_length == term_width ? 1 : (text_length / term_width) + 1;
-	// if (line_count > 1)
-	// 	printf("len: %d, term: %d, lines: %d\n", text_length, term_width, line_count);
-	// else
-		for (int i = 0; i < line_count; i++) {
-			ft_verbose("%s%s", UP, CUT);
-		}
+	for (int i = 0; i < line_count; i++) {
+		ft_verbose("%s%s", UP, CUT);
+	}
 }
 
 void remove_shm(void)
