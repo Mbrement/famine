@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/01 03:20:16 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/01 03:38:57 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,6 +108,9 @@ void famine(char *target, char *parent)
 	if (lstat(full_path, &statbuf) == -1)
 		return ;
 
+	/**
+	 * Prevent from following file symlink
+	 */
 	if (S_ISLNK(statbuf.st_mode))
 		return ;
 
@@ -189,6 +192,11 @@ void	custom_target(char *target, char *parent, int recursive, int recursive_dept
 
 	if (lstat(full_path, &statbuf) == -1)
 		return;
+	/**
+	 * Prevent from following dir symlink
+	 */
+	if (S_ISLNK(statbuf.st_mode))
+		return ;
 	if (S_ISREG(statbuf.st_mode))
 	{
 		famine(full_path, NULL);
