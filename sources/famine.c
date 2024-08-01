@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/01 12:57:09 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/01 13:15:23 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,9 +31,9 @@ const char signature[] = FM_SIGNATURE;
 const size_t elf_magic_size = sizeof(elf_magic);
 
 int get_terminal_width() {
-    struct winsize w;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    return w.ws_col;
+	struct winsize w;
+	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+	return w.ws_col;
 }
 
 void cut_last_line(int text_length)
@@ -47,7 +47,7 @@ void cut_last_line(int text_length)
 
 void remove_shm(void)
 {
-    shmctl(shmget(SHM_KEY, sizeof(int), 0666), IPC_RMID, NULL);
+	shmctl(shmget(SHM_KEY, sizeof(int), 0666), IPC_RMID, NULL);
 }
 
 int is_running(void)
@@ -231,17 +231,17 @@ int main(int argc, char **argv)
 	int recursive_depth = -1;
 
 	struct getopt_list_s optlist[] = {
-        {"daemon", 'd', OPTPARSE_NONE},
-        {"once", 'o', OPTPARSE_NONE},
-        {"multi-instances", 'm', OPTPARSE_NONE},
-        {"recursive", 'r', OPTPARSE_OPTIONAL},
-        {no_xsec, 0, OPTPARSE_REQUIRED},
-        {"verbose", 'v', OPTPARSE_NONE},
-        {0}
-    };
+		{"daemon", 'd', OPTPARSE_NONE},
+		{"once", 'o', OPTPARSE_NONE},
+		{"multi-instances", 'm', OPTPARSE_NONE},
+		{"recursive", 'r', OPTPARSE_OPTIONAL},
+		{no_xsec, 0, OPTPARSE_REQUIRED},
+		{"verbose", 'v', OPTPARSE_NONE},
+		{0}
+	};
 	struct getopt_s options;
 
-    ft_getopt_init(&options, argv);
+	ft_getopt_init(&options, argv);
 	while ((ch = ft_getopt(&options, optlist, NULL)) != -1) {
 		switch (ch) {
 			case 0:
