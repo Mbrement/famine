@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/01 12:47:52 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/01 12:53:57 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -206,6 +206,10 @@ void	custom_target(char *target, char *parent, int recursive, int recursive_dept
 	dir = opendir(full_path);
 	if (!dir)
 		return;
+
+	// if target is `/` then set it to an empty string to prevent from having `//` in the path
+	if (strcmp(full_path, "/") == 0)
+		full_path[0] = 0;
 	for (struct dirent *d = readdir(dir); g_exit == 0 && d != NULL; d = readdir(dir))
 	{
 		if (recursive && d->d_type == DT_DIR) {
@@ -370,6 +374,9 @@ int main(int argc, char **argv)
 		ft_verbose("\n%d files checked !\n", count);
 
 		if (option & F_ONCE)
+			break;
+
+		if (g_exit) // prevent sleep when exiting
 			break;
 
 		sleep(30);
