@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/03 16:09:35 by mgama             #+#    #+#             */
-/*   Updated: 2024/07/31 23:49:31 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/01 19:19:18 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,8 @@
 
 # define UP			"\033[A"
 # define CUT		"\033[K"
+
+#define LINK(link, placeholder) ("\033]8;;"link"\033\\"placeholder"\033]8;;\033\\")
 
 /*
  *	-- Defaults
