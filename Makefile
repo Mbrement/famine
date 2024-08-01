@@ -48,6 +48,10 @@ $(OBJ_DIR)/%.o: $(MANDATORY_DIR)/%.asm $(HEADERS)
 	@printf ${UP}${CUT}
 
 all: $(NAME)
+	@$(MAKE) -sC woody-woodpacker
+ifneq ($(shell uname), Darwin)
+	./woody-woodpacker/woody_woodpacker $(NAME)
+endif
 
 $(NAME): $(OBJS) $(OBJS_ASM)
 	@$(CC) $(CFLAGS) $(OCFLAGS) $^ -o $(NAME)
