@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/01 03:05:41 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/01 03:10:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -212,8 +212,6 @@ void	custom_target(char *target, char *parent, int recursive, int recursive_dept
 int main(int argc, char **argv)
 {
 	const char no_xsec[] = "\x69\x6B\x6E\x6F\x77\x77\x68\x61\x74\x69\x61\x6D\x64\x6F\x69\x6E\x67";
-	DIR *dir;
-	struct dirent *d;
 	struct stat stats;
 	int ch, option = 0;
 	char *target = NULL;
