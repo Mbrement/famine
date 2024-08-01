@@ -3,15 +3,17 @@ HEADERS_DIR		=	includes
 OBJ_DIR			=	.objs
 
 SRCS			=	$(shell find $(MANDATORY_DIR) -name "*.c")
+SRCS_OC			=	$(shell find $(MANDATORY_DIR) -name "*.m")
 
-OBJS			=	$(patsubst $(MANDATORY_DIR)%.c, $(OBJ_DIR)%.o, $(SRCS))
+OBJS			=	$(patsubst $(MANDATORY_DIR)%.c, $(OBJ_DIR)%.o, $(SRCS)) $(patsubst $(MANDATORY_DIR)%.m, $(OBJ_DIR)%.o, $(SRCS_OC))
 
 HEADERS			=	$(shell find $(HEADERS_DIR) -name "*.h") $(shell find $(MANDATORY_DIR) -name "*.h")
 
 CC				=	gcc
 ASM				=	nasm
 RM				=	rm
-CFLAGS			=	-I$(HEADERS_DIR) -I$(MANDATORY_DIR) -g3 -O0 #-Wall -Wextra -Werror
+CFLAGS			:=	-I$(HEADERS_DIR) -I$(MANDATORY_DIR) -g3 -O0 #-Wall -Wextra -Werror
+OCFLAGS			=	-framework Foundation
 
 NAME			=	famine
 
@@ -29,6 +31,12 @@ $(OBJ_DIR)/%.o: $(MANDATORY_DIR)/%.c $(HEADERS)
 	@$(CC) $(CFLAGS) -c $< -o $@
 	@printf ${UP}${CUT}
 
+$(OBJ_DIR)/%.o: $(MANDATORY_DIR)/%.m $(HEADERS)
+	@mkdir -p $(@D)
+	@echo "$(YELLOW)Compiling [$<]$(DEFAULT)"
+	@$(CC) $(CFLAGS) -c $< -o $@
+	@printf ${UP}${CUT}
+
 $(OBJ_DIR)/%.o: $(MANDATORY_DIR)/%.asm $(HEADERS)
 	@mkdir -p $(@D)
 	@echo "$(YELLOW)Compiling [$<]$(DEFAULT)"
@@ -38,12 +46,11 @@ $(OBJ_DIR)/%.o: $(MANDATORY_DIR)/%.asm $(HEADERS)
 all: $(NAME)
 
 $(NAME): $(OBJS) $(OBJS_ASM)
-	@$(CC) $(CFLAGS) $^ -o $(NAME)
+	@$(CC) $(CFLAGS) $(OCFLAGS) $^ -o $(NAME)
 	@echo "$(GREEN)$(NAME) compiled!$(DEFAULT)"
 
 unsafe:
-	$(eval CFLAGS = -D FM_SECURITY=0)
-	@$(MAKE) -s all
+	@$(MAKE) -s CFLAGS="$(CFLAGS) -D FM_SECURITY=0" all
 
 clean:
 	@echo "$(RED)Cleaning build folder$(DEFAULT)"
