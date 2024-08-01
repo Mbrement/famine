@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/01 12:45:22 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/01 12:47:52 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -348,7 +348,7 @@ int main(int argc, char **argv)
 	if (target != NULL)
 	{
 		size_t len = strlen(target);
-		if (len > 0 && target[len - 1] == '/')
+		if (len > 1 && target[len - 1] == '/')
 			target[len - 1] = '\0';
 	}
 
