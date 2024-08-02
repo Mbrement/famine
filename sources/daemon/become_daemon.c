@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 15:43:40 by mbrement          #+#    #+#             */
-/*   Updated: 2024/08/02 03:16:13 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 17:22:36 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,11 +68,11 @@ become_daemon(int flags)
 	if(!(flags & D_NO_CHDIR))
 		chdir("/");                     // change to root directory
 
-	if(!(flags & D_NO_CLOSE_FILES))    // close all open files
+	if(!(flags & D_NO_CLOSE_FILES))     // close all open files
 	{
 		maxfd = sysconf(_SC_OPEN_MAX);
 		if(maxfd == -1)
-			maxfd = D_MAX_CLOSE;       // if we don't know then guess
+			maxfd = D_MAX_CLOSE;        // if we don't know then guess
 		for(fd = 0; fd < maxfd; fd++)
 			close(fd);
 	}
@@ -80,7 +80,7 @@ become_daemon(int flags)
 	if(!(flags & D_NO_REOPEN_STD_FDS))
 	{
 		/*
-		* nNw time to go "dark"!
+		* Now time to go "dark"!
 		* we'll close stdin
 		* then we'll point stdout and stderr
 		* to /dev/null

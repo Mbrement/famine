@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/02 02:41:06 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 05:39:34 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 17:24:25 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,10 +22,10 @@ int
 spawn_command(char *const *argv, char *const *envp)
 {
 	pid_t pid;
-    int status;
+	int status;
 
 	/**
-	 * posix_spawn uses current process file descriptors, so we need to dup and close them
+	 * posix_spawn uses current process standard output, so we need to dup and close them
 	 * to avoid any output.
 	 */
 	int saveout = dup(STDOUT_FILENO);
@@ -43,7 +43,7 @@ spawn_command(char *const *argv, char *const *envp)
 	if (!WIFEXITED(status)) {
 		ft_verbose("%sError: failed to execute %s %s%s\n", B_RED, argv[0], argv[1], RESET);
 		return (-1);
-    }
+	}
 	/**
 	 * Restore file descriptors
 	 */
