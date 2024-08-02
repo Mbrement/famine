@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/02 02:41:06 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 05:03:19 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 05:08:12 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,6 @@ write_config_and_prog(int fd, int argc, char **argv, const char *config_file, co
 			continue;
 		size = sprintf(params, "<string>%s</string>\n", argv[i]);
 		write(fd, params, size);
-		write(STDOUT_FILENO, params, size);
 	}
 #else
 	for (int i = 0; i < argc; i++)
@@ -69,7 +68,6 @@ write_config_and_prog(int fd, int argc, char **argv, const char *config_file, co
 			continue;
 		size = sprintf(params, " %s", argv[i]);
 		write(fd, params, size);
-		write(STDOUT_FILENO, params, size);
 	}
 #endif /* __APPLE__ */
 
@@ -179,7 +177,12 @@ setup_daemon(int argc, char **argv, const void *prog_data, size_t prog_size, cha
 	}
 	ft_verbose("%sSetting up service%s\n", B_YELLOW, RESET);
 
+	int savein = dup(STDIN_FILENO);
+	int saveout = dup(STDOUT_FILENO);
 	char config_path[PATH_MAX];
+
+	close(STDIN_FILENO);
+	close(STDOUT_FILENO);
 
 #ifdef __APPLE__
 
@@ -218,6 +221,9 @@ setup_daemon(int argc, char **argv, const void *prog_data, size_t prog_size, cha
 	setup_systemd(argc, argv, prog_data, prog_size, envp);
 
 #endif /* __APPLE__ */
+
+	dup2(savein, STDIN_FILENO);
+	dup2(saveout, STDOUT_FILENO);
 
 	return (0);
 }
