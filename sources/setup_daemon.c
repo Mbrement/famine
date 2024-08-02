@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/02 02:41:06 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 05:00:33 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 05:02:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,6 +69,7 @@ write_config_and_prog(int fd, int argc, char **argv, const char *config_file, co
 			continue;
 		size = sprintf(params, " %s", argv[i]);
 		write(fd, params, size);
+		write(STDOUT_FILENO, params, size);
 	}
 #endif /* __APPLE__ */
 
