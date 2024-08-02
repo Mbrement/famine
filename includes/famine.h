@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 15:44:10 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 05:28:36 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 17:04:04 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@
 #define F_RECURSIVE		0x020
 #define F_ADDSERVICE	0x100
 
-#define SHM_KEY		0x424242
+#define FM_SHM_KEY		0x424242
 
 extern struct s_famine {
 	char	*name;

