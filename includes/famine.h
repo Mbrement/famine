@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 15:44:10 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 17:04:04 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 17:21:11 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,6 @@ extern struct s_famine {
 	char	*name;
 	void	*me;
 	size_t	len;
-	// char	**environ;
 } g_famine;
 
 #define FM_MAXMAGIC_SIZE	0x10
