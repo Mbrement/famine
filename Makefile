@@ -7,6 +7,8 @@ SRCS_OC			=	$(shell find $(MANDATORY_DIR) -name "*.m")
 
 OBJS			=	$(patsubst $(MANDATORY_DIR)%.c, $(OBJ_DIR)%.o, $(SRCS))
 
+BITS			=	$(shell getconf LONG_BIT)
+
 ifeq ($(shell uname), Darwin)
 	OBJS += $(patsubst $(MANDATORY_DIR)%.m, $(OBJ_DIR)%.o, $(SRCS_OC))
 	OCFLAGS	=	-framework Foundation
@@ -15,9 +17,8 @@ endif
 HEADERS			=	$(shell find $(HEADERS_DIR) -name "*.h")
 
 CC				=	gcc
-ASM				=	nasm
 RM				=	rm
-CFLAGS			:=	-I$(HEADERS_DIR) -I$(MANDATORY_DIR) -g3 -O0 -Wall -Wextra -Werror
+CFLAGS			:=	-I$(HEADERS_DIR) -I$(MANDATORY_DIR) -m$(BITS) -g3 -O0 -Wall -Wextra -Werror
 
 NAME			=	famine
 
@@ -41,15 +42,9 @@ $(OBJ_DIR)/%.o: $(MANDATORY_DIR)/%.m $(HEADERS)
 	@$(CC) $(CFLAGS) -c $< -o $@
 	@printf ${UP}${CUT}
 
-$(OBJ_DIR)/%.o: $(MANDATORY_DIR)/%.asm $(HEADERS)
-	@mkdir -p $(@D)
-	@echo "$(YELLOW)Compiling [$<]$(DEFAULT)"
-	@$(ASM) $(ASMFLAGS) $< -o $@
-	@printf ${UP}${CUT}
-
 all: $(NAME)
 
-$(NAME): $(OBJS) $(OBJS_ASM)
+$(NAME): $(OBJS)
 	@$(CC) $(CFLAGS) $(OCFLAGS) $^ -o $(NAME)
 	@echo "$(GREEN)$(NAME) compiled!$(DEFAULT)"
 
