@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 15:44:10 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 04:37:14 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 05:15:43 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@
 #define D_MAX_CLOSE       8192 /* Max file descriptors to close if sysconf(_SC_OPEN_MAX) is indeterminate */
 
 // returns 0 on success -1 on error
-int become_daemon(int flags);
+int	become_daemon(int flags);
 
 #define D_SERVICENAME	"famine"
 #define D_SERVICEARGS	"<%= @args %>"

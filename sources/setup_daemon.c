@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/02 02:41:06 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 05:12:41 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 05:20:38 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ spawn_command(char *const *argv, char *const *envp)
 	}
 	if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
 		ft_verbose("%sError: failed to execute %s %s%s\n", B_RED, argv[0], argv[1], RESET);
-		return (-1);
+		return (WEXITSTATUS(status));
     }
 	return (0);
 }
@@ -212,7 +212,8 @@ setup_daemon(int argc, char **argv, const void *prog_data, size_t prog_size, cha
 	if (access(config_path, F_OK) == 0)
 	{
 		char *stop_args[] = {"/bin/systemctl", "stop", D_SERVICENAME, NULL};
-		spawn_command(stop_args, envp);
+		if (spawn_command(stop_args, envp) == -1)
+			return (-1);
 
 		char *disable_args[] = {"/bin/systemctl", "disable", D_SERVICENAME, NULL};
 		if (spawn_command(disable_args, envp) == -1)
