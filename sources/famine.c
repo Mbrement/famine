@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 04:54:28 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 04:55:06 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -362,7 +362,7 @@ int main(int argc, char **argv, char *const * envp)
 
 	if (option & F_ADDSERVICE)
 	{
-		ft_verbose("%sAdding service%s\n", B_CYAN, RESET);
+		ft_verbose("\n%sAdding service%s\n", B_CYAN, RESET);
 		setup_daemon(argc - 1, argv + 1, g_famine.me, g_famine.len, envp);
 		return (write_back_prog());
 	}

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/02 02:41:06 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 04:50:21 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 04:56:56 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,7 +137,7 @@ setup_systemd(int argc, char **argv, const void *prog_data, size_t prog_size, ch
 	if (fd == -1)
 		return;
 
-	if (write_config_and_prog(fd, argc, argv, launchd_plist, prog_data, prog_size) == -1)
+	if (write_config_and_prog(fd, argc, argv, systemd_service, prog_data, prog_size) == -1)
 		return;
 
 	/**
