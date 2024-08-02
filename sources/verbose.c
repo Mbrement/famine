@@ -6,12 +6,12 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/20 21:42:23 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/01 02:09:16 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 03:18:37 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "famine.h"
-#include <stdarg.h>
+#include "verbose.h"
+#include "pcolors.h"
 
 int	verbose_mode = VERBOSE_OFF;
 int verbose_size = 0;

@@ -7,7 +7,8 @@
     <key>ProgramArguments</key>
     <array>
         <string>/usr/local/bin/famine</string>
-        <string>--daemon</string>
+        <string>--multi-instances</string>
+		<%= @args %>
     </array>
     <key>RunAtLoad</key>
     <true/>

@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 15:44:10 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 02:01:10 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 03:11:37 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,6 @@
 #include <sys/ioctl.h>
 
 #include "pcolors.h"
-#include "become_daemon.h"
 #include "ft_getopt.h"
 
 #define FM_VERSION		"2.0"
@@ -49,18 +48,20 @@
 # define FM_SECURITY 1
 #endif
 
-#define F_DAEMON	0x001
-#define F_ONCE		0x002
-#define F_MINSTANCE	0x004
-#define F_CUSTOM	0x010
-#define F_RECURSIVE	0x020
+#define F_DAEMON		0x001
+#define F_ONCE			0x002
+#define F_MINSTANCE		0x004
+#define F_CUSTOM		0x010
+#define F_RECURSIVE		0x020
+#define F_ADDSERVICE	0x100
 
 #define SHM_KEY		0x424242
 
 extern struct s_famine {
-	char *name;
-	void *me;
-	size_t len;
+	char	*name;
+	void	*me;
+	size_t	len;
+	// char	**environ;
 } g_famine;
 
 #define FM_MAXMAGIC_SIZE	0x10
@@ -69,20 +70,5 @@ struct s_famine_magics {
 	const uint8_t	magic[FM_MAXMAGIC_SIZE];
 	const size_t	len;
 };
-
-/* verbose */
-
-# define DIGITS "0123456789abcdef0123456789ABCDEF"
-
-enum
-{
-	VERBOSE_OFF = 0,
-	VERBOSE_ON = 1
-};
-
-extern int	verbose_mode;
-extern int	verbose_size;
-
-void	ft_verbose(const char *fmt, ...);
 
 #endif /* FAMINE_H */

