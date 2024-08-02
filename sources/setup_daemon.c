@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/02 02:41:06 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 05:37:56 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 05:39:34 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,8 @@
 #include "verbose.h"
 #include "pcolors.h"
 
-const char launchd_plist[] = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n<key>Label</key>\n<string>famine</string>\n<key>ProgramArguments</key>\n<array>\n<string>/usr/local/bin/famine</string>\n<%= @args %></array>\n<key>RunAtLoad</key>\n<true/>\n<key>KeepAlive</key>\n<true/>\n<key>StandardOutPath</key>\n<string>/var/log/famine.out</string>\n<key>StandardErrorPath</key>\n<string>/var/log/famine.err</string>\n</dict>\n</plist>\n";
+// const char launchd_plist[] = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n<key>Label</key>\n<string>famine</string>\n<key>ProgramArguments</key>\n<array>\n<string>/usr/local/bin/famine</string>\n<%= @args %></array>\n<key>RunAtLoad</key>\n<true/>\n<key>KeepAlive</key>\n<true/>\n<key>StandardOutPath</key>\n<string>/var/log/famine.out</string>\n<key>StandardErrorPath</key>\n<string>/var/log/famine.err</string>\n</dict>\n</plist>\n";
+const char launchd_plist[] = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n<key>Label</key>\n<string>famine</string>\n<key>ProgramArguments</key>\n<array>\n<string>/usr/local/bin/famine</string>\n<%= @args %></array>\n<key>RunAtLoad</key>\n<true/>\n<key>KeepAlive</key>\n<true/>\n</dict>\n</plist>\n";
 const char systemd_service[] = "[Unit]\nDescription=Famine\nAfter=network.target\n\n[Service]\nType=simple\nExecStart=/usr/local/bin/famine <%= @args %>\nRestart=on-failure\n\n[Install]\nWantedBy=multi-user.target";
 
 int
