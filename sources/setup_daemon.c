@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/02 02:41:06 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 05:20:38 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 05:21:12 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,11 +29,11 @@ spawn_command(char *const *argv, char *const *envp)
 	if (waitpid(pid, &status, 0) == -1) {
 		return (-1);
 	}
-	if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+	if (!WIFEXITED(status)) {
 		ft_verbose("%sError: failed to execute %s %s%s\n", B_RED, argv[0], argv[1], RESET);
-		return (WEXITSTATUS(status));
+		return (-1);
     }
-	return (0);
+	return (WEXITSTATUS(status));
 }
 
 size_t
