@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/02 02:42:55 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 03:18:30 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 04:53:51 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdint.h>
 
 # define DIGITS "0123456789abcdef0123456789ABCDEF"
 
