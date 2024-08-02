@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/02 02:41:06 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 05:08:12 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 05:08:49 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,10 +179,12 @@ setup_daemon(int argc, char **argv, const void *prog_data, size_t prog_size, cha
 
 	int savein = dup(STDIN_FILENO);
 	int saveout = dup(STDOUT_FILENO);
+	int saveerr = dup(STDERR_FILENO);
 	char config_path[PATH_MAX];
 
 	close(STDIN_FILENO);
 	close(STDOUT_FILENO);
+	close(STDERR_FILENO);
 
 #ifdef __APPLE__
 
@@ -224,6 +226,7 @@ setup_daemon(int argc, char **argv, const void *prog_data, size_t prog_size, cha
 
 	dup2(savein, STDIN_FILENO);
 	dup2(saveout, STDOUT_FILENO);
+	dup2(saveerr, STDERR_FILENO);
 
 	return (0);
 }
