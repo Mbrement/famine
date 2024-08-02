@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/02 02:41:06 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 05:02:09 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 05:03:19 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ write_config_and_prog(int fd, int argc, char **argv, const char *config_file, co
 	char params[PATH_MAX];
 
 	size_t pos = find_args(config_file);
-	write(fd, launchd_plist, pos);
+	write(fd, config_file, pos);
 
 	size_t size;
 #ifdef __APPLE__
