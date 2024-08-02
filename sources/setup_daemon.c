@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/02 02:41:06 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 04:58:43 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 05:00:04 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ spawn_command(char *const *argv, char *const *envp)
 		return (-1);
 	}
 	if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
-        fprintf(stderr, "Error: failed to reload systemd daemon\n");
+        fprintf(stderr, "Error: failed to execute %s\n", argv[0]);
 		return (-1);
     }
 	return (0);
