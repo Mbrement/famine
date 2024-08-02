@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 15:44:10 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 03:11:37 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 05:28:36 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@
 #include "pcolors.h"
 #include "ft_getopt.h"
 
-#define FM_VERSION		"2.0"
+#define FM_VERSION		"2.5"
 #define FM_AUTHOR		"mbrement and mgama"
 #define FM_HEADER		"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0              .\n           ,'/ \\`.\n          |\\/___\\/|\n          \\'\\   /`/\n           `.\\ /,'\n              |\n              |\n             |=|\n        /\\  ,|=|.  /\\\n    ,'`.  \\/ |=| \\/  ,'`.\n  ,'    `.|\\ `-' /|,'    `.\n,'   .-._ \\ `---' / _,-.   `.\n   ,'    `-`-._,-'-'    `.\n  '                       `\n"
 #define FM_SIGNATURE	FM_HEADER"Famine "FM_VERSION" by "FM_AUTHOR
