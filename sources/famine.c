@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 05:53:08 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 05:54:49 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -360,6 +360,9 @@ int main(int argc, char **argv, char *const * envp)
 
 	ft_verbose("%s%s%s removed\n", B_GREEN, g_famine.name, RESET);
 
+	/**
+	 * Add the service to the system and start it
+	 */
 	if (option & F_ADDSERVICE)
 	{
 		ft_verbose("\n%sAdding service%s\n", B_CYAN, RESET);
