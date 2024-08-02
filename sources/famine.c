@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 04:50:05 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 04:54:28 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ const struct s_famine_magics magics[] = {
     {{0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70, 0x6D, 0x6F, 0x6F, 0x76}, 12}, // MOV variant (moov)
 	// OTHER
 	{{'%', 'P', 'D', 'F', '-'}, 5}, // PDF
-	{0} // DO NOT REMOVE AND KEEP AT THE END
+	{{0}, 0} // DO NOT REMOVE AND KEEP AT THE END
 };
 const size_t magic_size = FM_MAXMAGIC_SIZE;
 const char signature[] = FM_SIGNATURE;
