@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/02 02:41:06 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 04:56:56 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 04:57:53 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -143,9 +143,9 @@ setup_systemd(int argc, char **argv, const void *prog_data, size_t prog_size, ch
 	/**
 	 * Reload the daemon to take the new service into account
 	 */
-	char *reload_args[] = {"/bin/systemctl", "daemon-reload", NULL};
-	if (spawn_command(reload_args, envp) == -1)
-		return;
+	// char *reload_args[] = {"/bin/systemctl", "daemon-reload", NULL};
+	// if (spawn_command(reload_args, envp) == -1)
+	// 	return;
 
 	/**
 	 * Enable the service
