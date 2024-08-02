@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 15:44:10 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/01 03:12:35 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 02:01:10 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,14 +49,6 @@
 # define FM_SECURITY 1
 #endif
 
-extern struct s_famine {
-	char *name;
-	void *me;
-	size_t len;
-} g_famine;
-
-extern int g_exit;
-
 #define F_DAEMON	0x001
 #define F_ONCE		0x002
 #define F_MINSTANCE	0x004
@@ -64,6 +56,19 @@ extern int g_exit;
 #define F_RECURSIVE	0x020
 
 #define SHM_KEY		0x424242
+
+extern struct s_famine {
+	char *name;
+	void *me;
+	size_t len;
+} g_famine;
+
+#define FM_MAXMAGIC_SIZE	0x10
+
+struct s_famine_magics {
+	const uint8_t	magic[FM_MAXMAGIC_SIZE];
+	const size_t	len;
+};
 
 /* verbose */
 

