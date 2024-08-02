@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/02 02:41:06 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 05:34:31 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 05:37:56 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,11 +27,9 @@ spawn_command(char *const *argv, char *const *envp)
 	 * posix_spawn uses current process file descriptors, so we need to dup and close them
 	 * to avoid any output.
 	 */
-	int savein = dup(STDIN_FILENO);
 	int saveout = dup(STDOUT_FILENO);
 	int saveerr = dup(STDERR_FILENO);
 
-	close(STDIN_FILENO);
 	close(STDOUT_FILENO);
 	close(STDERR_FILENO);
 
@@ -48,9 +46,10 @@ spawn_command(char *const *argv, char *const *envp)
 	/**
 	 * Restore file descriptors
 	 */
-	dup2(savein, STDIN_FILENO);
 	dup2(saveout, STDOUT_FILENO);
 	dup2(saveerr, STDERR_FILENO);
+	close(saveout);
+	close(saveerr);
 	return (WEXITSTATUS(status));
 }
 
