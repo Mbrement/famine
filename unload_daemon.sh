@@ -27,3 +27,5 @@ else
     echo "Unsupported OS."
     exit 1
 fi
+
+sudo rm -f /usr/local/bin/"$PROG_FILE"

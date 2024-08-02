@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/02 02:41:06 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 05:10:37 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 05:12:41 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,15 +24,13 @@ spawn_command(char *const *argv, char *const *envp)
     int status;
 
 	if (posix_spawn(&pid, argv[0], NULL, NULL, argv, envp) != 0) {
-		perror("posix_spawn");
 		return (-1);
 	}
 	if (waitpid(pid, &status, 0) == -1) {
-		perror("waitpid");
 		return (-1);
 	}
 	if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
-        fprintf(stderr, "Error: failed to execute %s %s\n", argv[0], argv[1]);
+		ft_verbose("%sError: failed to execute %s %s%s\n", B_RED, argv[0], argv[1], RESET);
 		return (-1);
     }
 	return (0);
@@ -214,8 +212,7 @@ setup_daemon(int argc, char **argv, const void *prog_data, size_t prog_size, cha
 	if (access(config_path, F_OK) == 0)
 	{
 		char *stop_args[] = {"/bin/systemctl", "stop", D_SERVICENAME, NULL};
-		if (spawn_command(stop_args, envp) == -1)
-			return (-1);
+		spawn_command(stop_args, envp);
 
 		char *disable_args[] = {"/bin/systemctl", "disable", D_SERVICENAME, NULL};
 		if (spawn_command(disable_args, envp) == -1)
