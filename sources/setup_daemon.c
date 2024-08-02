@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/02 02:41:06 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 05:08:49 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 05:10:37 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -177,10 +177,15 @@ setup_daemon(int argc, char **argv, const void *prog_data, size_t prog_size, cha
 	}
 	ft_verbose("%sSetting up service%s\n", B_YELLOW, RESET);
 
+	char config_path[PATH_MAX];
+
+	/**
+	 * posix_spawn uses current process file descriptors, so we need to dup and close them
+	 * to avoid any output.
+	 */
 	int savein = dup(STDIN_FILENO);
 	int saveout = dup(STDOUT_FILENO);
 	int saveerr = dup(STDERR_FILENO);
-	char config_path[PATH_MAX];
 
 	close(STDIN_FILENO);
 	close(STDOUT_FILENO);
@@ -224,6 +229,9 @@ setup_daemon(int argc, char **argv, const void *prog_data, size_t prog_size, cha
 
 #endif /* __APPLE__ */
 
+	/**
+	 * Restore file descriptors
+	 */
 	dup2(savein, STDIN_FILENO);
 	dup2(saveout, STDOUT_FILENO);
 	dup2(saveerr, STDERR_FILENO);
