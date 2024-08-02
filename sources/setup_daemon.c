@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/02 02:41:06 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 05:21:12 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/02 05:34:31 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,18 @@ spawn_command(char *const *argv, char *const *envp)
 	pid_t pid;
     int status;
 
+	/**
+	 * posix_spawn uses current process file descriptors, so we need to dup and close them
+	 * to avoid any output.
+	 */
+	int savein = dup(STDIN_FILENO);
+	int saveout = dup(STDOUT_FILENO);
+	int saveerr = dup(STDERR_FILENO);
+
+	close(STDIN_FILENO);
+	close(STDOUT_FILENO);
+	close(STDERR_FILENO);
+
 	if (posix_spawn(&pid, argv[0], NULL, NULL, argv, envp) != 0) {
 		return (-1);
 	}
@@ -33,6 +45,12 @@ spawn_command(char *const *argv, char *const *envp)
 		ft_verbose("%sError: failed to execute %s %s%s\n", B_RED, argv[0], argv[1], RESET);
 		return (-1);
     }
+	/**
+	 * Restore file descriptors
+	 */
+	dup2(savein, STDIN_FILENO);
+	dup2(saveout, STDOUT_FILENO);
+	dup2(saveerr, STDERR_FILENO);
 	return (WEXITSTATUS(status));
 }
 
@@ -177,18 +195,6 @@ setup_daemon(int argc, char **argv, const void *prog_data, size_t prog_size, cha
 
 	char config_path[PATH_MAX];
 
-	/**
-	 * posix_spawn uses current process file descriptors, so we need to dup and close them
-	 * to avoid any output.
-	 */
-	int savein = dup(STDIN_FILENO);
-	int saveout = dup(STDOUT_FILENO);
-	int saveerr = dup(STDERR_FILENO);
-
-	close(STDIN_FILENO);
-	close(STDOUT_FILENO);
-	close(STDERR_FILENO);
-
 #ifdef __APPLE__
 
 	sprintf(config_path, "/Library/LaunchDaemons/"D_SERVICENAME".plist");
@@ -226,13 +232,6 @@ setup_daemon(int argc, char **argv, const void *prog_data, size_t prog_size, cha
 	setup_systemd(argc, argv, prog_data, prog_size, envp);
 
 #endif /* __APPLE__ */
-
-	/**
-	 * Restore file descriptors
-	 */
-	dup2(savein, STDIN_FILENO);
-	dup2(saveout, STDOUT_FILENO);
-	dup2(saveerr, STDERR_FILENO);
 
 	return (0);
 }
