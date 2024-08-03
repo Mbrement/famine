@@ -81,10 +81,12 @@ int main(void) {
 
     // Find the last section in the last loadable segment
     Elf64_Shdr *last_section_in_segment = NULL;
+	int last_section_in_segment_index = 0;
     for (int i = 0; i < ehdr->e_shnum; ++i) {
         if (shdrs[i].sh_offset >= last_loadable_phdr->p_offset &&
             shdrs[i].sh_offset + shdrs[i].sh_size <= last_loadable_phdr->p_offset + last_loadable_phdr->p_filesz) {
             last_section_in_segment = &shdrs[i];
+			last_section_in_segment_index = i;
         }
     }
 
@@ -126,7 +128,7 @@ int main(void) {
     // memmove((char *)map + shdr_offset + sizeof(Elf64_Shdr), (char *)map + shdr_offset, shdr_size);
 
 	// Update section headers
-    for (int i = 0; i < ehdr->e_shnum; ++i) {
+    for (int i = last_section_in_segment_index; i < ehdr->e_shnum; ++i) {
         if (shdrs[i].sh_offset >= new_section_offset) {
             shdrs[i].sh_offset += payload_size_p;
         }
