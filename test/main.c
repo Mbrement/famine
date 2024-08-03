@@ -32,7 +32,7 @@ int main(void) {
 	addr_ip = htonl(INADDR_ANY);
 	printf("port: %#x %#x\n", port, addr_ip);
 
-	int fd = open(elf_filename, O_RDWR);
+	int fd = open("testprog", O_RDWR);
     if (fd == -1) {
         perror("open");
         exit(EXIT_FAILURE);
