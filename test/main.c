@@ -42,10 +42,11 @@ void insert_executable_section(const char *elf_filename) {
     Elf64_Addr new_section_addr = 0;
     for (int i = 0; i < ehdr.e_phnum; ++i) {
         if (phdrs[i].p_type == PT_LOAD) {
-            new_section_offset = phdrs[i].p_offset + phdrs[i].p_filesz;
-            new_section_addr = phdrs[i].p_vaddr + phdrs[i].p_memsz;
-            phdrs[i].p_filesz += payload_size_p;
-            phdrs[i].p_memsz += payload_size_p;
+            // Ensure the new section is aligned
+            new_section_offset = (phdrs[i].p_offset + phdrs[i].p_filesz + 0xFFF) & ~0xFFF;
+            new_section_addr = (phdrs[i].p_vaddr + phdrs[i].p_memsz + 0xFFF) & ~0xFFF;
+            phdrs[i].p_filesz = new_section_offset + payload_size_p - phdrs[i].p_offset;
+            phdrs[i].p_memsz = new_section_addr + payload_size_p - phdrs[i].p_vaddr;
             phdrs[i].p_flags |= PF_X | PF_W | PF_R;
         }
     }
