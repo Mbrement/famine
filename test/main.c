@@ -53,7 +53,7 @@ int main(void) {
         exit(EXIT_FAILURE);
     }
 
-    void *map = mmap(NULL, new_filesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    uint8_t *map = mmap(NULL, new_filesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (map == MAP_FAILED) {
         perror("mmap");
         close(fd);
@@ -119,9 +119,9 @@ int main(void) {
 
     // Copy the payload data
 	// leave space for the new section data and copy the payload
-	memmove((char *)map + new_section_offset + payload_size_p, (char *)map + new_section_offset, filesize - new_section_offset);
+	memmove(map + new_section_offset + payload_size_p, map + new_section_offset, filesize - new_section_offset);
     // memcpy((char *)map + new_section_offset, payload_p, payload_size_p);
-    memset((char *)map + new_section_offset, 4, payload_size_p);
+    memset(map + new_section_offset, 4, payload_size_p);
 
 	// Move section headers to make space for the new section header
     // Elf64_Shdr *new_shdrs = (Elf64_Shdr *)((char *)map + ehdr->e_shoff);
