@@ -112,8 +112,8 @@ int main(void) {
     // memcpy(map + new_section_offset, payload_p, payload_size_p);
 	printf("payload_size_p: %#lx => %#lx\n", new_section_offset, new_section_offset + payload_size_p);
     memset(map + new_section_offset, 0, payload_size_p);
-    memset(map + new_section_offset, 4242, 4);
-    memset(map + new_section_offset + payload_size_p - 4, 4242, 4);
+    memset(map + new_section_offset, 0x4242, 4);
+    memset(map + new_section_offset + payload_size_p - 4, 0x4242, 4);
 
 	// Synchronize changes with the file
     if (msync(map, new_filesize, MS_SYNC) == -1) {
@@ -130,6 +130,10 @@ int main(void) {
         if (shdrs[i].sh_offset >= new_section_offset) {
             shdrs[i].sh_offset += payload_size_p;
         }
+    }
+
+	if (msync(map, new_filesize, MS_SYNC) == -1) {
+        perror("msync");
     }
 
     // Create new section header
@@ -160,6 +164,10 @@ int main(void) {
     // ehdr->e_entry = new_section_addr;
 
 	ehdr->e_shoff += payload_size_p;
+
+	if (msync(map, new_filesize, MS_SYNC) == -1) {
+        perror("msync");
+    }
 
     // // Calculate the relative jump offset to the old entry point
     // int32_t jump_offset = (int32_t)(old_entry_point - (new_section_addr + payload_size_p - 5) - 5);
