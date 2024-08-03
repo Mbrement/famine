@@ -110,6 +110,7 @@ int main(void) {
         memmove(map + new_section_offset + payload_size_p, map + new_section_offset, old_data_size);
     }
     // memcpy(map + new_section_offset, payload_p, payload_size_p);
+	printf("payload_size_p: %#lx\n", new_section_offset);
     memset(map + new_section_offset, 0, payload_size_p);
     memset(map + new_section_offset, 4242, 4);
     memset(map + new_section_offset + payload_size_p - 4, 4242, 4);
