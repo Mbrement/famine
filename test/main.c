@@ -67,7 +67,7 @@ void insert_executable_section(const char *elf_filename) {
 	Elf64_Addr jump_offset = old_entry_point - (new_section_addr + payload_size_p);
 
     size_t jump_offset = payload_size_p - 1190 - 4;
-	memccpy(payload_p + jump_offset, &jump_offset, 4);
+	memcpy(payload_p + jump_offset, &jump_offset, 4);
 
     // Write the new section
     fseek(file, new_section_offset, SEEK_SET);
