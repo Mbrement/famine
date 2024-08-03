@@ -64,40 +64,40 @@ int main(void) {
     Elf64_Phdr *phdrs = (Elf64_Phdr *)((char *)map + ehdr->e_phoff);
     Elf64_Shdr *shdrs = (Elf64_Shdr *)((char *)map + ehdr->e_shoff);
 
-    // // Find the last loadable segment
-    // Elf64_Phdr *last_loadable_phdr = NULL;
-    // for (int i = 0; i < ehdr->e_phnum; ++i) {
-    //     if (phdrs[i].p_type == PT_LOAD) {
-    //         last_loadable_phdr = &phdrs[i];
-    //     }
-    // }
+    // Find the last loadable segment
+    Elf64_Phdr *last_loadable_phdr = NULL;
+    for (int i = 0; i < ehdr->e_phnum; ++i) {
+        if (phdrs[i].p_type == PT_LOAD) {
+            last_loadable_phdr = &phdrs[i];
+        }
+    }
 
-    // if (!last_loadable_phdr) {
-    //     fprintf(stderr, "No loadable segment found\n");
-    //     munmap(map, new_filesize);
-    //     close(fd);
-    //     exit(EXIT_FAILURE);
-    // }
+    if (!last_loadable_phdr) {
+        fprintf(stderr, "No loadable segment found\n");
+        munmap(map, new_filesize);
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
 
-    // Find the last section in the last loadable segment
-    // Elf64_Shdr *last_section_in_segment = NULL;
-    // for (int i = 0; i < ehdr->e_shnum; ++i) {
-    //     if (shdrs[i].sh_offset >= last_loadable_phdr->p_offset &&
-    //         shdrs[i].sh_offset + shdrs[i].sh_size <= last_loadable_phdr->p_offset + last_loadable_phdr->p_filesz) {
-    //         last_section_in_segment = &shdrs[i];
-    //     }
-    // }
+    Find the last section in the last loadable segment
+    Elf64_Shdr *last_section_in_segment = NULL;
+    for (int i = 0; i < ehdr->e_shnum; ++i) {
+        if (shdrs[i].sh_offset >= last_loadable_phdr->p_offset &&
+            shdrs[i].sh_offset + shdrs[i].sh_size <= last_loadable_phdr->p_offset + last_loadable_phdr->p_filesz) {
+            last_section_in_segment = &shdrs[i];
+        }
+    }
 
-    // if (!last_section_in_segment) {
-    //     fprintf(stderr, "No section found in the last loadable segment\n");
-    //     munmap(map, new_filesize);
-    //     close(fd);
-    //     exit(EXIT_FAILURE);
-    // }
+    if (!last_section_in_segment) {
+        fprintf(stderr, "No section found in the last loadable segment\n");
+        munmap(map, new_filesize);
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
 
     // Calculate new section header and data offsets
-    // Elf64_Off new_section_offset = last_loadable_phdr->p_offset + last_loadable_phdr->p_filesz;
-    // Elf64_Addr new_section_addr = last_loadable_phdr->p_vaddr + last_loadable_phdr->p_memsz;
+    Elf64_Off new_section_offset = last_loadable_phdr->p_offset + last_loadable_phdr->p_filesz;
+    Elf64_Addr new_section_addr = last_loadable_phdr->p_vaddr + last_loadable_phdr->p_memsz;
 
     // Update the last loadable segment sizes
     // last_loadable_phdr->p_filesz += payload_size_p;
