@@ -107,10 +107,7 @@ int main(void) {
 
     // Copy the payload data
 	// leave space for the new section data and copy the payload
-	size_t old_data_size = filesize - new_section_offset;
-    if (old_data_size > 0) {
-        memmove(map + new_section_offset + payload_size_p, map + new_section_offset, old_data_size);
-    }
+    memmove(map + new_section_offset + payload_size_p, map + new_section_offset, old_data_size);
     // memcpy(map + new_section_offset, payload_p, payload_size_p);
 	printf("payload_size_p: %#lx => %#lx\n", new_section_offset, new_section_offset + payload_size_p);
     memset(map + new_section_offset, 0, payload_size_p);
@@ -125,6 +122,7 @@ int main(void) {
     // memmove((char *)map + shdr_offset + sizeof(Elf64_Shdr), (char *)map + shdr_offset, shdr_size);
 
 	// Update section headers
+	printf("last_section_in_segment_index: %d\n", last_section_in_segment_index, ehdr->e_shnum);
     for (int i = last_section_in_segment_index; i < ehdr->e_shnum; ++i) {
         if (shdrs[i].sh_offset >= new_section_offset) {
             shdrs[i].sh_offset += payload_size_p;
