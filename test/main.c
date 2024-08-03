@@ -144,7 +144,7 @@ int main(void) {
     // ehdr->e_entry = new_section_addr;
 
 	// update section headers offset in the ELF header
-	ehdr->e_shoff += payload_size_p;
+	// ehdr->e_shoff += payload_size_p;
 
     // // Calculate the relative jump offset to the old entry point
     // int32_t jump_offset = (int32_t)(old_entry_point - (new_section_addr + payload_size_p - 5) - 5);
