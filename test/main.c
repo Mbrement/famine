@@ -72,6 +72,8 @@ int main(int argc, char *argv[], char *envp[]) {
 
 	int last_section = -1;
 
+	Elf64_Shdr *shdr = (Elf64_Shdr *)(map + ehdr->e_shoff);
+
 	for (int j = 1; j < elf->e_shnum; j++)
 	{
 		// find the last section in the last segment
