@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 17:16:51 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/03 13:49:09 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,9 +119,9 @@ int	is_magic(const char *buf, const struct s_famine_magics *magic)
 void famine(char *target, char *parent)
 {
 	struct stat statbuf;
-	char full_path[PATH_MAX + 1 + PATH_MAX];
+	char full_path[FM_PATH_MAX];
 
-	bzero(full_path, PATH_MAX + 1 + PATH_MAX);
+	bzero(full_path, FM_PATH_MAX);
 	if (parent != NULL)
 	{
 		strcpy(full_path, parent);
@@ -202,9 +202,9 @@ void	custom_target(char *target, char *parent, int recursive, int recursive_dept
 {
 	struct stat statbuf;
 	DIR *dir;
-	char full_path[PATH_MAX + 1 + PATH_MAX];
+	char full_path[FM_PATH_MAX];
 
-	bzero(full_path, PATH_MAX + 1 + PATH_MAX);
+	bzero(full_path, FM_PATH_MAX);
 
 	/**
 	 * Prevent from infinite loop
