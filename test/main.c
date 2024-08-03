@@ -111,6 +111,8 @@ int main(void) {
     }
     // memcpy(map + new_section_offset, payload_p, payload_size_p);
     memset(map + new_section_offset, 0, payload_size_p);
+    memset(map + new_section_offset, 4242, 4);
+    memset(map + new_section_offset + payload_size_p - 4, 4242, 4);
 
 	// Move section headers to make space for the new section header
 	// size_t shdr_offset = ehdr->e_shoff;
