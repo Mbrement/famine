@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <sys/syscall.h>
 #include <elf.h>
 
 #ifdef __APPLE__
