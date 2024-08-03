@@ -119,7 +119,7 @@ int main(void) {
 
     // Copy the payload data
 	memmove((char *)map + new_section_offset + sizeof(Elf64_Shdr), (char *)map + new_section_offset, filesize - new_section_offset);
-    memcpy((char *)map + new_section_offset, payload_p, payload_size_p);
+    // memcpy((char *)map + new_section_offset, payload_p, payload_size_p);
 
 	// Move section headers to make space for the new section header
     // Elf64_Shdr *new_shdrs = (Elf64_Shdr *)((char *)map + ehdr->e_shoff);
