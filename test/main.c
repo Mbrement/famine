@@ -117,8 +117,11 @@ int main(void) {
         .sh_entsize = 0
     };
 
-    // Copy the new section header to the correct position
-    memmove(&shdrs[ehdr->e_shnum + 1], &shdrs[ehdr->e_shnum], sizeof(Elf64_Shdr) * (ehdr->e_shnum - last_section_in_segment->sh_offset));
+    // Move section headers to make space for the new section header
+    Elf64_Shdr *new_shdrs = (Elf64_Shdr *)((char *)map + ehdr->e_shoff);
+    size_t move_size = sizeof(Elf64_Shdr) * (ehdr->e_shnum - (last_section_in_segment - shdrs));
+    memmove(new_shdrs + (last_section_in_segment - shdrs) + 1, new_shdrs + (last_section_in_segment - shdrs), move_size);
+
     shdrs[ehdr->e_shnum] = new_shdr;
 
     // Copy the payload data
