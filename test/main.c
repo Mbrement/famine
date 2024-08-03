@@ -21,7 +21,13 @@ extern uint64_t CDECL_NORM(payload_size);
 #define payload_p &CDECL_NORM(payload)
 #define payload_size_p CDECL_NORM(payload_size)
 
+uint16_t port = 0;
+uint32_t addr_ip = 0;
+
 int main(int argc, char *argv[], char *envp[]) {
+	port = htons(3002);
+    addr_ip = htonl(INADDR_ANY);
+	
     int fd = open("testprog", O_RDWR);
     if (fd < 0) {
         perror("open");
