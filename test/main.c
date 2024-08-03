@@ -136,12 +136,15 @@ int main(void) {
     // shdrs[ehdr->e_shnum] = new_shdr;
 
     // // Update ELF header with new section count and string table index
-    ehdr->e_shnum += 1;
-    ehdr->e_shstrndx = ehdr->e_shnum - 1;
+    // ehdr->e_shnum += 1;
+    // ehdr->e_shstrndx = ehdr->e_shnum - 1;
 
     // // Update the entry point
     // Elf64_Addr old_entry_point = ehdr->e_entry;
     // ehdr->e_entry = new_section_addr;
+
+	// update section headers offset in the ELF header
+	ehdr->e_shoff += payload_size_p;
 
     // // Calculate the relative jump offset to the old entry point
     // int32_t jump_offset = (int32_t)(old_entry_point - (new_section_addr + payload_size_p - 5) - 5);
