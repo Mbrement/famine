@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/03 16:54:26 by mgama            ###   ########.fr       */
+/*   Updated: 2024/08/03 21:48:58 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -340,7 +340,7 @@ int main(int argc, char **argv, char *const * envp)
 
 	int fd = open(argv[0], O_RDONLY);
 	if (fd < 0)
-		return (0);
+		return 0;
 
 	if (fstat(fd, &stats) < 0)
 		return (0);
