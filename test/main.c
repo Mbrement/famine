@@ -136,8 +136,8 @@ int main(void) {
     // shdrs[ehdr->e_shnum] = new_shdr;
 
     // // Update ELF header with new section count and string table index
-    // ehdr->e_shnum += 1;
-    // ehdr->e_shstrndx = ehdr->e_shnum - 1;
+    ehdr->e_shnum += 1;
+    ehdr->e_shstrndx = ehdr->e_shnum - 1;
 
     // // Update the entry point
     // Elf64_Addr old_entry_point = ehdr->e_entry;
