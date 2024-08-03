@@ -121,11 +121,11 @@ int main(void) {
 	// leave space for the new section data and copy the payload
 	memmove(map + new_section_offset + payload_size_p, map + new_section_offset, filesize - new_section_offset);
     // memcpy((char *)map + new_section_offset, payload_p, payload_size_p);
-    memset(map + new_section_offset, 4, payload_size_p);
+    memset(map + new_section_offset, 0, payload_size_p);
 
-	if (msync(map, new_filesize, MS_SYNC) == -1) {
-		perror("msync");
-	}
+	// if (msync(map, new_filesize, MS_SYNC) == -1) {
+	// 	perror("msync");
+	// }
 
 	// Move section headers to make space for the new section header
     // Elf64_Shdr *new_shdrs = (Elf64_Shdr *)((char *)map + ehdr->e_shoff);
