@@ -122,7 +122,7 @@ int main(void) {
     // memmove((char *)map + shdr_offset + sizeof(Elf64_Shdr), (char *)map + shdr_offset, shdr_size);
 
 	// Update section headers
-	printf("last_section_in_segment_index: %d\n", last_section_in_segment_index, ehdr->e_shnum);
+	printf("last_section_in_segment_index: %d %d\n", last_section_in_segment_index, ehdr->e_shnum);
     for (int i = last_section_in_segment_index; i < ehdr->e_shnum; ++i) {
         if (shdrs[i].sh_offset >= new_section_offset) {
             shdrs[i].sh_offset += payload_size_p;
