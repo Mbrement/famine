@@ -53,12 +53,37 @@ int main(int argc, char *argv[], char *envp[]) {
 	Elf64_Ehdr *ehdr = (Elf64_Ehdr *)map;
 	Elf64_Phdr *phdr = (Elf64_Phdr *)(map + ehdr->e_phoff);
 
+	int last_phdr = -1;
+
 	for (int i = 0; i < ehdr->e_phnum; i++) {
 		if (phdr[i].p_type == PT_LOAD) {
 			printf("found PT_LOAD\n");
 			phdr[i].p_flags = PF_R | PF_W | PF_X;
+			last_phdr = i;
 		}
 	}
+
+	if (last_phdr == -1) {
+		fprintf(stderr, "no PT_LOAD found\n");
+		return 1;
+	}
+
+	Elf64_Phdr *last_phdr_p = &phdr[last_phdr];
+
+	int last_section = -1;
+
+	for (int j = 1; j < elf->e_shnum; j++)
+	{
+		// find the last section in the last segment
+		if (shdr[j].sh_addr >= last_phdr_p->p_vaddr &&
+			shdr[j].sh_addr < last_phdr_p->p_vaddr + last_phdr_p->p_memsz)
+		{
+			last_section = j;
+		}
+	}
+
+	printf("last_phdr: %d\n", last_phdr);
+	printf("last_section: %d\n", last_section);
 
 	munmap(map, st.st_size);
 	close(fd);
