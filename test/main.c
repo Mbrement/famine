@@ -113,9 +113,9 @@ int main(void) {
     memset(map + new_section_offset, 0, payload_size_p);
 
 	// Move section headers to make space for the new section header
-	size_t shdr_offset = ehdr->e_shoff;
-    size_t shdr_size = sizeof(Elf64_Shdr) * ehdr->e_shnum;
-    memmove((char *)map + shdr_offset + sizeof(Elf64_Shdr), (char *)map + shdr_offset, shdr_size);
+	// size_t shdr_offset = ehdr->e_shoff;
+    // size_t shdr_size = sizeof(Elf64_Shdr) * ehdr->e_shnum;
+    // memmove((char *)map + shdr_offset + sizeof(Elf64_Shdr), (char *)map + shdr_offset, shdr_size);
 
 	// Update section headers
     for (int i = 0; i < ehdr->e_shnum; ++i) {
@@ -125,31 +125,33 @@ int main(void) {
     }
 
     // Create new section header
-    Elf64_Shdr new_shdr = {
-        .sh_name = 0,
-        .sh_type = SHT_PROGBITS,
-        .sh_flags = SHF_ALLOC | SHF_EXECINSTR,
-        .sh_addr = new_section_addr,
-        .sh_offset = new_section_offset,
-        .sh_size = payload_size_p,
-        .sh_link = 0,
-        .sh_info = 0,
-        .sh_addralign = 1,
-        .sh_entsize = 0
-    };
+    // Elf64_Shdr new_shdr = {
+    //     .sh_name = 0,
+    //     .sh_type = SHT_PROGBITS,
+    //     .sh_flags = SHF_ALLOC | SHF_EXECINSTR,
+    //     .sh_addr = new_section_addr,
+    //     .sh_offset = new_section_offset,
+    //     .sh_size = payload_size_p,
+    //     .sh_link = 0,
+    //     .sh_info = 0,
+    //     .sh_addralign = 1,
+    //     .sh_entsize = 0
+    // };
 
-	shdrs[ehdr->e_shnum] = new_shdr;
+	// shdrs[ehdr->e_shnum] = new_shdr;
 
     // Update ELF header
-    ehdr->e_shnum += 1;
-    ehdr->e_shoff += sizeof(Elf64_Shdr);
+    // ehdr->e_shnum += 1;
+    // ehdr->e_shoff += sizeof(Elf64_Shdr);
 
     // Update section header string table index
-    ehdr->e_shstrndx = ehdr->e_shnum - 1;
+    // ehdr->e_shstrndx = ehdr->e_shnum - 1;
 
     // Update the entry point
-    Elf64_Addr old_entry_point = ehdr->e_entry;
-    ehdr->e_entry = new_section_addr;
+    // Elf64_Addr old_entry_point = ehdr->e_entry;
+    // ehdr->e_entry = new_section_addr;
+
+	ehdr->e_shoff += payload_size_p;
 
     // Synchronize changes with the file
     if (msync(map, new_filesize, MS_SYNC) == -1) {
