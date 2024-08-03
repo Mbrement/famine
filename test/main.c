@@ -122,9 +122,17 @@ int main(void) {
     size_t move_size = sizeof(Elf64_Shdr) * (ehdr->e_shnum - (last_section_in_segment - shdrs));
     memmove(new_shdrs + (last_section_in_segment - shdrs) + 1, new_shdrs + (last_section_in_segment - shdrs), move_size);
 
+	// Update the section header offsets
+    for (int i = 0; i < ehdr->e_shnum; ++i) {
+        if (shdrs[i].sh_offset >= new_section_offset) {
+            shdrs[i].sh_offset += sizeof(Elf64_Shdr);
+        }
+    }
+	
     shdrs[ehdr->e_shnum] = new_shdr;
 
     // Copy the payload data
+	memmove((char *)map + new_section_offset + sizeof(Elf64_Shdr), (char *)map + new_section_offset, filesize - new_section_offset);
     memcpy((char *)map + new_section_offset, payload_p, payload_size_p);
 
     // Update ELF header with new section count and string table index
