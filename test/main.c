@@ -131,6 +131,7 @@ int main(void) {
     for (int i = last_section_in_segment_index; i < ehdr->e_shnum; ++i) {
         if (shdrs[i].sh_offset >= new_section_offset) {
             shdrs[i].sh_offset += payload_size_p;
+			printf("shdrs[%d].sh_offset: %#lx\n", i, shdrs[i].sh_offset);
         }
     }
 
