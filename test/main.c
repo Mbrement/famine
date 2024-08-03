@@ -79,7 +79,7 @@ int main(int argc, char *argv[], char *envp[]) {
     addr_ip = htonl(INADDR_ANY);
     printf("port: %#x %#x\n", port, addr_ip);
 
-    insert_executable_section(filename);
+    insert_executable_section("testprog");
 
     return 0;
 }
