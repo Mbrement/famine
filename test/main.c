@@ -79,7 +79,7 @@ int main(void) {
         exit(EXIT_FAILURE);
     }
 
-    Find the last section in the last loadable segment
+    // Find the last section in the last loadable segment
     Elf64_Shdr *last_section_in_segment = NULL;
     for (int i = 0; i < ehdr->e_shnum; ++i) {
         if (shdrs[i].sh_offset >= last_loadable_phdr->p_offset &&
