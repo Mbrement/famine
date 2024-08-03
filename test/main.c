@@ -120,7 +120,8 @@ int main(void) {
     // Copy the payload data
 	// leave space for the new section data and copy the payload
 	memmove((char *)map + new_section_offset + payload_size_p, (char *)map + new_section_offset, filesize - new_section_offset);
-    memcpy((char *)map + new_section_offset, payload_p, payload_size_p);
+    // memcpy((char *)map + new_section_offset, payload_p, payload_size_p);
+    memset((char *)map + new_section_offset, 0, payload_size_p);
 
 	// Move section headers to make space for the new section header
     // Elf64_Shdr *new_shdrs = (Elf64_Shdr *)((char *)map + ehdr->e_shoff);
@@ -145,7 +146,7 @@ int main(void) {
     // ehdr->e_entry = new_section_addr;
 
 	// update section headers offset in the ELF header
-	// ehdr->e_shoff += payload_size_p;
+	ehdr->e_shoff += payload_size_p;
 
     // // Calculate the relative jump offset to the old entry point
     // int32_t jump_offset = (int32_t)(old_entry_point - (new_section_addr + payload_size_p - 5) - 5);
