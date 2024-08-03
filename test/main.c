@@ -52,6 +52,7 @@ int main(int argc, char *argv[], char *envp[]) {
 
 	Elf64_Ehdr *ehdr = (Elf64_Ehdr *)map;
 	Elf64_Phdr *phdr = (Elf64_Phdr *)(map + ehdr->e_phoff);
+	Elf64_Shdr *shdr = (Elf64_Shdr *)(map + ehdr->e_shoff);
 
 	int last_phdr = -1;
 
@@ -72,9 +73,7 @@ int main(int argc, char *argv[], char *envp[]) {
 
 	int last_section = -1;
 
-	Elf64_Shdr *shdr = (Elf64_Shdr *)(map + ehdr->e_shoff);
-
-	for (int j = 1; j < elf->e_shnum; j++)
+	for (int j = 1; j < ehdr->e_shnum; j++)
 	{
 		// find the last section in the last segment
 		if (shdr[j].sh_addr >= last_phdr_p->p_vaddr &&
