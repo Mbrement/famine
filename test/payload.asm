@@ -77,7 +77,6 @@ exit:
     ; Jump to the next instruction
 	jmp 0x0
 
-section .text
 stat_buffer	times 144 db 0	; Taille de struct stat sur x86-64
 path		times 1024 db 0	; Chemin du fichier
 sockaddr_in:
@@ -90,4 +89,4 @@ sockaddr_in:
 	dd 0                       ; sin_addr (INADDR_ANY)
 	times 8 db 0               ; sin_zero (8 octets de zéros)
 	; Taille totale: 16 octets
-_payload_size equ $ - _payload
+_payload_size dq $- _payload
