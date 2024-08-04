@@ -3,18 +3,56 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <fcntl.h>
+
 #include <arpa/inet.h>
 #include <netinet/in.h>
+
 #include <sys/socket.h>
 #include <sys/poll.h>
+#include <sys/time.h>
+
 #include <vector>
 #include <iostream>
 
 #define MAX_EVENTS 10
-#define PORT 3002
+#define PORT 4242
 #define MAX_CLIENTS 100
 
+int // returns 0 on success -1 on error
+become_daemon(int flags)
+{
+	int maxfd, fd;
+
+	switch(fork())
+	{
+		case -1: return -1;
+		case 0: break;
+		default: _exit(EXIT_SUCCESS);
+	}
+
+	if(setsid() == -1)
+		return -1;
+
+	switch(fork())
+	{
+		case -1: return -1;
+		case 0: break;
+		default: _exit(EXIT_SUCCESS);
+	}
+
+	return 0;
+}
+
 int main() {
+	become_daemon(0);
+
+	int logfile = open("famine.log", O_CREAT | O_WRONLY | O_APPEND, 0644);
+	if (logfile == -1) {
+		perror("open");
+		exit(EXIT_FAILURE);
+	}
+
 	// Create socket
 	int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (socket_fd == 0)
@@ -50,7 +88,7 @@ int main() {
 		exit(EXIT_FAILURE);
 	}
 
-	printf("Server listening on port %d...\n", PORT);
+	dprintf(logfile, "Server listening on port %d...\n", PORT);
 
 	std::vector<pollfd>		poll_fds;
 
@@ -82,7 +120,7 @@ int main() {
 						exit(EXIT_FAILURE);
 					}
 
-					printf("New connection accepted\n");
+					dprintf(logfile, "New connection accepted on %d\n", new_socket_fd);
 
 					// Add new client to poll set
 					poll_fds.push_back((pollfd){new_socket_fd, POLLIN, 0});
@@ -95,13 +133,13 @@ int main() {
 					if (valread == 0)
 					{
 						// Client disconnected
-						printf("Client disconnected\n");
+						dprintf(logfile, "Client disconnected on %d\n", poll_fds[i].fd);
 						close(poll_fds[i].fd);
 						to_remove.push_back(i);
 					}
 					else
 					{
-						printf("Received: %s\n", buffer);
+						dprintf(logfile, "Received [%d]: %s\n", poll_fds[i].fd, buffer);
 					}
 				}
 			}
