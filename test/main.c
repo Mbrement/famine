@@ -121,18 +121,18 @@ int main(void) {
 
 	// Update section headers
 	printf("last_section_in_segment_index: %d %d\n", last_section_in_segment_index, ehdr->e_shnum);
-	for (int i = last_section_in_segment_index; i < ehdr->e_shnum; ++i) {
-		shdrs[i].sh_offset += payload_size_p;
-		printf("shdrs[%d].sh_offset: %#lx\n", i, shdrs[i].sh_offset);
-	}
-
-	if (msync(map, new_filesize, MS_SYNC) == -1) {
-		perror("msync");
-	}
 
 	memmove(shdrs + last_section_in_segment_index + 1, shdrs + last_section_in_segment_index, (ehdr->e_shnum - last_section_in_segment_index) * sizeof(Elf64_Shdr));
 	ehdr->e_shnum += 1;
 	
+	if (msync(map, new_filesize, MS_SYNC) == -1) {
+		perror("msync");
+	}
+
+	for (int i = last_section_in_segment_index; i < ehdr->e_shnum; ++i) {
+		shdrs[i].sh_offset += payload_size_p;
+		printf("shdrs[%d].sh_offset: %#lx\n", i, shdrs[i].sh_offset);
+	}
 
     // Create new section header
 	// Elf64_Shdr new_shdr = {
