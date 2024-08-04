@@ -20,7 +20,7 @@ global _payload_size
 
 _payload:
 	pushfq
-	pushx rax, rdi, rsi, rsp, rdx, rcx, r8, r9, r12
+	pushx rdi, rsi, rsp, rdx, rcx, r8, r9, r12
 
     ; Ouvrir le fichier
     mov rax, 2				; SYS_open
@@ -94,7 +94,7 @@ exit:
     ; Jump to the next instruction
 	xor rax, rax
 	mov rax, r9
-	popx rax, rdi, rsi, rsp, rdx, rcx, r8, r9, r12
+	popx rdi, rsi, rsp, rdx, rcx, r8, r9, r12
 	popfq
 	; jmp 0x0
 	ret
