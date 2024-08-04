@@ -178,14 +178,6 @@ int main(void) {
 	// Update section header string table index
 	ehdr->e_shstrndx += 1;
 
-	// int strtab_index = -1;
-	// for (int i = 0; i < ehdr->e_shnum; ++i) {
-	// 	if (shdrs[i].sh_type == SHT_STRTAB && i != ehdr->e_shstrndx) {
-	// 		strtab_index = i;
-	// 		break;
-	// 	}
-	// }
-
 	for (int i = 0; i < ehdr->e_shnum; ++i) {
 		if (shdrs[i].sh_type == SHT_SYMTAB) {
 			shdrs[i].sh_link += 1;
@@ -250,12 +242,12 @@ int main(void) {
 		}
 	}
 
-	// if (start_sym) {
-	// 	// Update the existing _start symbol
-	// 	start_sym->st_value = new_section_addr;
-	// 	start_sym->st_size = payload_size_p;
-	// 	start_sym->st_shndx = last_section_in_segment_index;
-	// }
+	if (start_sym) {
+		// Update the existing _start symbol
+		start_sym->st_value = new_section_addr;
+		start_sym->st_size = payload_size_p;
+		start_sym->st_shndx = last_section_in_segment_index;
+	}
 
 	if (msync(map, new_filesize, MS_SYNC) == -1) {
 		perror("msync");
