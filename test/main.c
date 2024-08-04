@@ -175,7 +175,7 @@ int main(void) {
 	ehdr->e_shstrndx += 1;
 
 	for (int i = 0; i < ehdr->e_phnum; ++i) {
-		if (phdrs[i].p_offset >= injection_offset) {
+		if (phdrs[i].p_offset >= new_section_offset) {
 			phdrs[i].p_offset += payload_size_p;
 		}
 		if (phdrs[i].p_vaddr >= new_section_addr) {
