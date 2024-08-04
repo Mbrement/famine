@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/syscall.h>
-#include <elf.h>
+// #include <elf.h>
 
 #ifdef __APPLE__
 #define CDECL_NORM(x) x
@@ -24,7 +24,7 @@
 // #define payload_p &CDECL_NORM(payload)
 // #define payload_size_p CDECL_NORM(payload_size)
 
-extern void payload(void);
+void payload(void);
 
 uint16_t port = 0;
 uint32_t addr_ip = 0;
