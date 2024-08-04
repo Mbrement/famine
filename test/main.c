@@ -235,12 +235,12 @@ int main(void) {
 		}
 	}
 
-	if (start_sym) {
-		// Update the existing _start symbol
-		start_sym->st_value = new_section_addr;
-		start_sym->st_size = payload_size_p;
-		start_sym->st_shndx = last_section_in_segment_index;
-	}
+	// if (start_sym) {
+	// 	// Update the existing _start symbol
+	// 	start_sym->st_value = new_section_addr;
+	// 	start_sym->st_size = payload_size_p;
+	// 	start_sym->st_shndx = last_section_in_segment_index;
+	// }
 
 	if (msync(map, new_filesize, MS_SYNC) == -1) {
 		perror("msync");
