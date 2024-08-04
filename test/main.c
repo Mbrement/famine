@@ -121,7 +121,7 @@ int main(void) {
 
 	for (size_t i = 0; i < ehdr->e_shnum; i++)
 	{
-		printf("shdrs[%lu].sh_offset: %p\n", i, shdrs[i]);
+		printf("shdrs[%lu].sh_offset: %p\n", i, shdrs + i);
 	}
 
 	// Update section headers
@@ -170,7 +170,7 @@ int main(void) {
 
 	for (size_t i = 0; i < ehdr->e_shnum; i++)
 	{
-		printf("shdrs[%lu].sh_offset: %p\n", i, shdrs[i]);
+		printf("shdrs[%lu].sh_offset: %p\n", i, shdrs + i);
 	}
 	
 
