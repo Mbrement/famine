@@ -136,7 +136,7 @@ int main(void) {
 	printf("last_section_in_segment_index: %d %d\n", last_section_in_segment_index, ehdr->e_shnum);
     for (int i = last_section_in_segment_index; i < ehdr->e_shnum; ++i) {
 		shdrs[i].sh_offset += payload_size_p;
-		// printf("shdrs[%d].sh_offset: %#lx\n", i, shdrs[i].sh_offset);
+		printf("shdrs[%d].sh_offset: %#lx\n", i, shdrs[i].sh_offset);
     }
 
     // Create new section header
