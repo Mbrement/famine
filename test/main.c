@@ -114,6 +114,12 @@ int main(void) {
     memset(map + new_section_offset, 0x4242, 4);
     memset(map + new_section_offset + payload_size_p - 4, 0x4242, 4);
 
+	shdrs += payload_size_p;
+
+	if (msync(map, new_filesize, MS_SYNC) == -1) {
+		perror("msync");
+	}
+
 	// Synchronize changes with the file
 
 	// Move section headers to make space for the new section header
@@ -161,11 +167,10 @@ int main(void) {
     // ehdr->e_entry = new_section_addr;
 
 	ehdr->e_shoff += payload_size_p;
-	shdrs += payload_size_p;
 
 	if (msync(map, new_filesize, MS_SYNC) == -1) {
-        perror("msync");
-    }
+		perror("msync");
+	}
 
 	for (int i = 0; i < ehdr->e_shnum; ++i) {
 		printf("shdrs[%d].sh_offset: %#lx\n", i, shdrs[i].sh_offset);
