@@ -93,9 +93,9 @@ error_open:
 exit:
     ; Jump to the next instruction
 	xor rax, rax
+	mov rax, r9
 	popx rax, rdi, rsi, rsp, rdx, rcx, r8, r9, r12
 	popfq
-	mov rax, r9
 	; jmp 0x0
 	ret
 
