@@ -152,6 +152,9 @@ int main(void) {
 
 	for (int i = last_section_in_segment_index; i < ehdr->e_shnum; ++i) {
 		shdrs[i].sh_offset += payload_size_p;
+		if (shdrs[i].sh_addr != 0) {
+			shdrs[i].sh_addr += payload_size_p;
+		}
 		printf("shdrs[%d].sh_offset: %#lx\n", i, shdrs[i].sh_offset);
 	}
 
@@ -173,16 +176,6 @@ int main(void) {
 
 	// Update section header string table index
 	ehdr->e_shstrndx += 1;
-
-	for (int i = 0; i < ehdr->e_phnum; ++i) {
-		if (phdrs[i].p_offset >= new_section_offset) {
-			phdrs[i].p_offset += payload_size_p;
-		}
-		if (phdrs[i].p_vaddr >= new_section_addr) {
-			phdrs[i].p_vaddr += payload_size_p;
-			phdrs[i].p_paddr += payload_size_p;
-		}
-	}
 
 	if (msync(map, new_filesize, MS_SYNC) == -1) {
 		perror("msync");
