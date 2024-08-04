@@ -53,7 +53,8 @@ int main(int ac, char **av) {
 	uint32_t addr_ip = *(uint32_t *)hostent->h_addr_list[0];
 	printf("port: %#x %#x (%s)\n", port, addr_ip, inet_ntoa(*(struct in_addr *)&addr_ip));
 
-	CDECL_NORM(payload)();
+	errno = CDECL_NORM(payload)();
+	perror("payload");
 
 	// int fd = open(av[1], O_RDWR);
 	// if (fd == -1) {
