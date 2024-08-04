@@ -141,14 +141,14 @@ int main(void) {
 	};
 
 	//move all the section headers after the last section in the last loadable segment
-	memmove(shdrs + last_section_in_segment_index + 1, shdrs + last_section_in_segment_index, (ehdr->e_shnum - last_section_in_segment_index) * sizeof(Elf64_Shdr));
+	// memmove(shdrs + last_section_in_segment_index + 1, shdrs + last_section_in_segment_index, (ehdr->e_shnum - last_section_in_segment_index) * sizeof(Elf64_Shdr));
 
-	shdrs[ehdr->e_shnum] = new_shdr;
+	// shdrs[ehdr->e_shnum] = new_shdr;
 
     // Update ELF header
-    ehdr->e_shnum += 1;
+    // ehdr->e_shnum += 1;
     // Update section header string table index
-    ehdr->e_shstrndx = ehdr->e_shnum - 1;
+    // ehdr->e_shstrndx = ehdr->e_shnum - 1;
 
     // Update the entry point
     // Elf64_Addr old_entry_point = ehdr->e_entry;
