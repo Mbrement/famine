@@ -110,6 +110,8 @@ cleanup:
 
 exit:
     ; Quitter le programme
-    mov rax, 60                   ; SYS_exit
-    xor rdi, rdi                  ; Code de sortie 0
-    syscall
+    ; mov rax, 60                   ; SYS_exit
+    ; xor rdi, rdi                  ; Code de sortie 0
+    ; syscall
+	mov rax, 0
+	ret
