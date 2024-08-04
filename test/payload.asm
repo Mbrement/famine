@@ -116,8 +116,8 @@ _payload:
 	syscall
 
 	popx rax, rdi, rsi, rdx, r10
-	jmp     [rel 0x0]
-	; ret
+	; jmp     [rel 0x0]
+	ret
 
 STATBUFFER		times 144 db 0
 ; CONNECT_BUFFER	times 16 db 0
