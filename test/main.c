@@ -156,6 +156,7 @@ int main(void) {
 			shdrs[i].sh_addr += payload_size_p;
 		}
 		printf("shdrs[%d].sh_offset: %#lx\n", i, shdrs[i].sh_offset);
+		printf("shdrs[%d].sh_addr: %#lx\n", i, shdrs[i].sh_addr);
 	}
 
 	// Create new section header
