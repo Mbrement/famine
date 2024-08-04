@@ -162,7 +162,7 @@ int main(void) {
     // Update ELF header
     // ehdr->e_shnum += 1;
     // Update section header string table index
-    // ehdr->e_shstrndx = ehdr->e_shnum - 1;
+    ehdr->e_shstrndx += 1;
 
     // Update the entry point
     // Elf64_Addr old_entry_point = ehdr->e_entry;
