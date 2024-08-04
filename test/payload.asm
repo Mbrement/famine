@@ -30,12 +30,15 @@ _payload:
 	pushx rax, rdi, rsi, rdx, r10
 
 	; sys_write
-	mov rax, 1
-	mov	rdi, rax
-	lea	rsi, [rel .msg]
-	mov	rdx, 7
+	mov rax, 1          ; syscall number for sys_write
+	mov rdi, 1          ; file descriptor (stdout)
+	lea rsi, [rel .msg]  ; pointer to message
+	mov rdx, 7          ; length of message
 	syscall
-	
+
+	popx rax, rdi, rsi, rdx, r10
+
+
 	; Open the file
 	mov rax, 2					; syscall number for open
 	lea rdi, [rel FILEPATH]		; filename
