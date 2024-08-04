@@ -90,7 +90,8 @@ exit:
 	xor rax, rax
 	popx rax, rdi, rsi, rsp, rdx, rcx, r8, r9, r12
 	popfq
-	jmp 0x0
+	; jmp 0x0
+	ret
 
 stat_buffer	times 144 db 0	; Taille de struct stat sur x86-64
 sockaddr_in:
