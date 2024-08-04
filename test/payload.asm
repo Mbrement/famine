@@ -73,6 +73,8 @@ error_open:
 
 exit:
     ; Jump to the next instruction
+	xor rax, rax
+	leave
 	jmp 0x0
 
 stat_buffer	times 144 db 0	; Taille de struct stat sur x86-64
