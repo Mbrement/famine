@@ -130,7 +130,8 @@ int main(void) {
 		perror("msync");
 	}
 
-	// memmove(shdrs + last_section_in_segment_index + 1, shdrs + last_section_in_segment_index, (ehdr->e_shnum - last_section_in_segment_index) * sizeof(Elf64_Shdr));
+	memmove(shdrs + last_section_in_segment_index + 1, shdrs + last_section_in_segment_index, (ehdr->e_shnum - last_section_in_segment_index) * sizeof(Elf64_Shdr));
+	ehdr->e_shnum += 1;
 	
 
     // Create new section header
