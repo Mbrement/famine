@@ -31,7 +31,7 @@ section .data
         ; Taille totale: 16 octets
         ; Nous définissons la structure en mémoire ici.
         ; db 16                      ; sin_len
-        dw 2                       ; sin_family (AF_INET)
+        db 2                       ; sin_family (AF_INET)
         dw 0xba0b                  ; sin_port (3002 en hex)
         dd 0                       ; sin_addr (INADDR_ANY)
         times 8 db 0               ; sin_zero (8 octets de zéros)
