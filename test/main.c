@@ -25,16 +25,13 @@
 // #define payload_p &CDECL_NORM(payload)
 // #define payload_size_p CDECL_NORM(payload_size)
 
-void CDECL_NORM(payload)(void);
+int CDECL_NORM(payload)(void);
 
 uint16_t port = 0;
 uint32_t addr_ip = 0;
 
 int main(void) {
-	errno = 0;
-	CDECL_NORM(payload)();
-
-	errno = 9;
+	errno = CDECL_NORM(payload)();
 	perror("payload");
 	// port = htons(3002);
 	// addr_ip = htonl(INADDR_ANY);
