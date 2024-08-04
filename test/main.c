@@ -162,7 +162,7 @@ int main(void) {
 	memcpy(shdrs + last_section_in_segment_index, &new_shdr, sizeof(Elf64_Shdr));
 
     // Update ELF header
-    ehdr->e_shnum += 1;
+    // ehdr->e_shnum += 1;
     // Update section header string table index
     ehdr->e_shstrndx += 1;
 
