@@ -100,7 +100,7 @@ int main(void) {
 	}
 
 	// Calculate new section header and data offsets
-	Elf64_Off new_section_offset = last_loadable_phdr->p_offset + last_loadable_phdr->p_filesz;
+	Elf64_Off new_section_offset = last_loadable_phdr->p_offset + last_loadable_phdr->p_memsz;
 	Elf64_Addr new_section_addr = last_loadable_phdr->p_vaddr + last_loadable_phdr->p_memsz;
 
 	// Update the last loadable segment sizes
