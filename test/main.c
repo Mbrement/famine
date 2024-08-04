@@ -34,6 +34,7 @@ int main(void) {
 	errno = 0;
 	CDECL_NORM(payload)();
 
+	errno = 0xfffffffffffffff7;
 	perror("payload");
 	// port = htons(3002);
 	// addr_ip = htonl(INADDR_ANY);
