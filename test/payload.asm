@@ -1,12 +1,26 @@
 [BITS 64]
 
+%macro pushx 1-*
+%rep %0
+push %1
+%rotate 1
+%endrep
+%endmacro
+
+%macro popx 1-*
+%rep %0
+	%rotate -1
+	pop %1
+%endrep
+%endmacro
+
 section .text
 global _payload
 global _payload_size
 
 _payload:
-    push rbp
-    mov rbp, rsp
+	pushfq
+	pushx rax, rdi, rsi, rsp, rdx, rcx, r8, r9, r12
 
     ; Ouvrir le fichier
     mov rax, 2				; SYS_open
@@ -74,7 +88,8 @@ error_open:
 exit:
     ; Jump to the next instruction
 	xor rax, rax
-	leave
+	popx rax, rdi, rsi, rsp, rdx, rcx, r8, r9, r12
+	popfq
 	jmp 0x0
 
 stat_buffer	times 144 db 0	; Taille de struct stat sur x86-64
