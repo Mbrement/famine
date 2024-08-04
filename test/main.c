@@ -18,13 +18,11 @@
 #define CDECL_NORM(x) _ ## x
 #endif /* __APPLE__ */
 
-// extern uint8_t CDECL_NORM(payload);
+extern uint8_t CDECL_NORM(payload);
 extern uint64_t CDECL_NORM(payload_size);
 
-// #define payload_p &CDECL_NORM(payload)
+#define payload_p &CDECL_NORM(payload)
 #define payload_size_p CDECL_NORM(payload_size)
-
-void payload(void);
 
 uint16_t port = 0;
 uint32_t addr_ip = 0;
