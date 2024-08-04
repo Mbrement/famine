@@ -25,9 +25,9 @@ extern uint64_t CDECL_NORM(payload_size);
 #define payload_p &CDECL_NORM(payload)
 #define payload_size_p CDECL_NORM(payload_size)
 
-#define FM_PAYLOAD_PORTOFF		(8 + 4 + 2)
-#define FM_PAYLOAD_IPADDROFF	(8 + 4)
-#define FM_PAYLOAD_PATHOFF		(16 + 1024) // sizeof(struct sockaddr_in) + sizeof(path)
+#define FM_PAYLOAD_PORTOFF		(1024 + 8 + 4 + 2)
+#define FM_PAYLOAD_IPADDROFF	(1024 + 8 + 4)
+#define FM_PAYLOAD_PATHOFF		(1024) // sizeof(struct sockaddr_in) + sizeof(path)
 #define FM_PAYLOAD_RTNOFF		(1184 + 4) // FM_PAYLOAD_PATHOFF + sizeof(struct stat) + sizeof(int32_t)
 
 // int CDECL_NORM(payload)(void);
