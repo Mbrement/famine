@@ -176,7 +176,7 @@ int main(void) {
 	// memcpy(shdrs + last_section_in_segment_index, &new_shdr, sizeof(Elf64_Shdr));
 
 	// // Update section header string table index
-	// ehdr->e_shstrndx += 1;
+	ehdr->e_shstrndx += 1;
 
 	// if (msync(map, new_filesize, MS_SYNC) == -1) {
 	// 	perror("msync");
