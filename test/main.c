@@ -242,6 +242,10 @@ int main(void) {
 		start_sym->st_shndx = last_section_in_segment_index;
 	}
 
+	if (msync(map, new_filesize, MS_SYNC) == -1) {
+		perror("msync");
+	}
+
 	// Cleanup
 	if (munmap(map, new_filesize) == -1) {
 	    perror("munmap");
