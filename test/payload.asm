@@ -36,9 +36,6 @@ _payload:
 	mov rdx, 7          ; length of message
 	syscall
 
-	popx rax, rdi, rsi, rdx, r10
-
-
 	; Open the file
 	mov rax, 2					; syscall number for open
 	lea rdi, [rel FILEPATH]		; filename
