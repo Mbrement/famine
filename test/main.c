@@ -174,6 +174,16 @@ int main(void) {
 	// Update section header string table index
 	ehdr->e_shstrndx += 1;
 
+	for (int i = 0; i < ehdr->e_phnum; ++i) {
+		if (phdrs[i].p_offset >= injection_offset) {
+			phdrs[i].p_offset += payload_size_p;
+		}
+		if (phdrs[i].p_vaddr >= new_section_addr) {
+			phdrs[i].p_vaddr += payload_size_p;
+			phdrs[i].p_paddr += payload_size_p;
+		}
+	}
+
 	if (msync(map, new_filesize, MS_SYNC) == -1) {
 		perror("msync");
 	}
