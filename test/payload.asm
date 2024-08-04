@@ -28,6 +28,7 @@ section .text
 
 ;; Data definitions
 struc sockaddr_in
+	.sin_len resb 1
     .sin_family resw 1
     .sin_port resw 1
     .sin_addr resd 1
@@ -122,6 +123,7 @@ STATBUFFER		times 144 db 0
 ; CONNECT_BUFFER	times 16 db 0
 ;; sockaddr_in structure for the address the listening socket binds to
 pop_sa istruc sockaddr_in
+	at sockaddr_in.sin_len,		db 16
 	at sockaddr_in.sin_family,	dw 2			; AF_INET
 	at sockaddr_in.sin_port,	dw 0xa1ed		; port 60833
 	at sockaddr_in.sin_addr,	dd 0			; localhost
