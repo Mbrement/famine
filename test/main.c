@@ -160,91 +160,106 @@ int main(void) {
 	}
 
 	// Create new section header
-	// Elf64_Shdr new_shdr = {
-	// 	.sh_name = 0,
-	// 	.sh_type = SHT_PROGBITS,
-	// 	.sh_flags = SHF_ALLOC | SHF_EXECINSTR,
-	// 	.sh_addr = new_section_addr,
-	// 	.sh_offset = new_section_offset,
-	// 	.sh_size = payload_size_p,
-	// 	.sh_link = 0,
-	// 	.sh_info = 0,
-	// 	.sh_addralign = 16,
-	// 	.sh_entsize = 0
-	// };
+	Elf64_Shdr new_shdr = {
+		.sh_name = 0,
+		.sh_type = SHT_PROGBITS,
+		.sh_flags = SHF_ALLOC | SHF_EXECINSTR,
+		.sh_addr = new_section_addr,
+		.sh_offset = new_section_offset,
+		.sh_size = payload_size_p,
+		.sh_link = 0,
+		.sh_info = 0,
+		.sh_addralign = 16,
+		.sh_entsize = 0
+	};
 
-	// memcpy(shdrs + last_section_in_segment_index, &new_shdr, sizeof(Elf64_Shdr));
+	memcpy(shdrs + last_section_in_segment_index, &new_shdr, sizeof(Elf64_Shdr));
 
-	// // Update section header string table index
+	// Update section header string table index
 	ehdr->e_shstrndx += 1;
 
-	// if (msync(map, new_filesize, MS_SYNC) == -1) {
-	// 	perror("msync");
-	// }
+	int strtab_index = -1;
+	for (int i = 0; i < ehdr->e_shnum; ++i) {
+		if (shdrs[i].sh_type == SHT_STRTAB && i != ehdr->e_shstrndx) {
+			strtab_index = i;
+			break;
+		}
+	}
 
-	// // Update the entry point
-	// Elf64_Addr old_entry_point = ehdr->e_entry;
-	// ehdr->e_entry = new_section_addr;
+	for (int i = 0; i < ehdr->e_shnum; ++i) {
+		if (shdrs[i].sh_type == SHT_SYMTAB) {
+			shdrs[i].sh_link = strtab_index;
+			break;
+		}
+	}
+
+	if (msync(map, new_filesize, MS_SYNC) == -1) {
+		perror("msync");
+	}
+
+	// Update the entry point
+	Elf64_Addr old_entry_point = ehdr->e_entry;
+	ehdr->e_entry = new_section_addr;
 	
-	// // // Calculate the relative jump offset to the old entry point
-	// int32_t jump_offset = (int32_t)(old_entry_point - (new_section_addr + payload_size_p - 5) - 5);
-	// printf("offset to old: %#lx\n", jump_offset);
+	// // Calculate the relative jump offset to the old entry point
+	int32_t jump_offset = (int32_t)(old_entry_point - (new_section_addr + payload_size_p - 5) - 5);
+	printf("offset to old: %#lx\n", jump_offset);
 
-	// // // Write the relative jump instruction at the end of the payload
-	// size_t jump_instr_offset = payload_size_p - 1186 - 6 - 4;
-	// *((uint8_t *)map + new_section_offset + jump_instr_offset) = 0xE9; // Opcode for jmp (relative)
-	// memcpy(map + new_section_offset + jump_instr_offset + 1, &jump_offset, sizeof(int32_t));
+	// // Write the relative jump instruction at the end of the payload
+	size_t jump_instr_offset = payload_size_p - 1186 - 6 - 4;
+	*((uint8_t *)map + new_section_offset + jump_instr_offset) = 0xE9; // Opcode for jmp (relative)
+	memcpy(map + new_section_offset + jump_instr_offset + 1, &jump_offset, sizeof(int32_t));
 
-	// if (msync(map, new_filesize, MS_SYNC) == -1) {
-	// 	perror("msync");
+	if (msync(map, new_filesize, MS_SYNC) == -1) {
+		perror("msync");
+	}
+
+	/**
+	 * update _start
+	 */
+
+	// Find the _start symbol
+	Elf64_Shdr *symtab_shdr = NULL;
+	Elf64_Shdr *strtab_shdr = NULL;
+	for (int i = 0; i < ehdr->e_shnum; ++i) {
+		if (shdrs[i].sh_type == SHT_SYMTAB) {
+			symtab_shdr = &shdrs[i];
+		}
+		if (shdrs[i].sh_type == SHT_STRTAB && i != ehdr->e_shstrndx) {
+			strtab_shdr = &shdrs[i];
+		}
+	}
+
+	if (!symtab_shdr || !strtab_shdr) {
+		fprintf(stderr, "Symbol table or string table not found\n");
+		munmap(map, new_filesize);
+		close(fd);
+		exit(EXIT_FAILURE);
+	}
+
+	Elf64_Sym *symtab = (Elf64_Sym *)(map + symtab_shdr->sh_offset);
+	char *strtab = (char *)(map + strtab_shdr->sh_offset);
+
+	// Find or add the _start symbol
+	int symtab_count = symtab_shdr->sh_size / sizeof(Elf64_Sym);
+	Elf64_Sym *start_sym = NULL;
+	for (int i = 0; i < symtab_count; ++i) {
+		if (strcmp(strtab + symtab[i].st_name, "_start") == 0) {
+			start_sym = &symtab[i];
+			break;
+		}
+	}
+
+	// if (start_sym) {
+	// 	// Update the existing _start symbol
+	// 	start_sym->st_value = new_section_addr;
+	// 	start_sym->st_size = payload_size_p;
+	// 	start_sym->st_shndx = last_section_in_segment_index;
 	// }
 
-	// /**
-	//  * update _start
-	//  */
-
-	// // Find the _start symbol
-	// Elf64_Shdr *symtab_shdr = NULL;
-	// Elf64_Shdr *strtab_shdr = NULL;
-	// for (int i = 0; i < ehdr->e_shnum; ++i) {
-	// 	if (shdrs[i].sh_type == SHT_SYMTAB) {
-	// 		symtab_shdr = &shdrs[i];
-	// 	}
-	// 	if (shdrs[i].sh_type == SHT_STRTAB && i != ehdr->e_shstrndx) {
-	// 		strtab_shdr = &shdrs[i];
-	// 	}
-	// }
-
-	// if (!symtab_shdr || !strtab_shdr) {
-	// 	fprintf(stderr, "Symbol table or string table not found\n");
-	// 	munmap(map, new_filesize);
-	// 	close(fd);
-	// 	exit(EXIT_FAILURE);
-	// }
-
-	// Elf64_Sym *symtab = (Elf64_Sym *)(map + symtab_shdr->sh_offset);
-	// char *strtab = (char *)(map + strtab_shdr->sh_offset);
-
-	// // Find or add the _start symbol
-	// int symtab_count = symtab_shdr->sh_size / sizeof(Elf64_Sym);
-	// Elf64_Sym *start_sym = NULL;
-	// for (int i = 0; i < symtab_count; ++i) {
-	// 	if (strcmp(strtab + symtab[i].st_name, "_start") == 0) {
-	// 		start_sym = &symtab[i];
-	// 		break;
-	// 	}
-	// }
-
-	// // if (start_sym) {
-	// // 	// Update the existing _start symbol
-	// // 	start_sym->st_value = new_section_addr;
-	// // 	start_sym->st_size = payload_size_p;
-	// // 	start_sym->st_shndx = last_section_in_segment_index;
-	// // }
-
-	// if (msync(map, new_filesize, MS_SYNC) == -1) {
-	// 	perror("msync");
-	// }
+	if (msync(map, new_filesize, MS_SYNC) == -1) {
+		perror("msync");
+	}
 
 	// Cleanup
 	if (munmap(map, new_filesize) == -1) {
