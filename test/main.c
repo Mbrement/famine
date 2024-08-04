@@ -128,6 +128,11 @@ int main(void) {
 		printf("shdrs[%d].sh_offset: %#lx\n", i, shdrs[i].sh_offset);
     }
 
+	for (int i = 0; i < ehdr->e_shnum; ++i) {
+		printf("shdrs[%d].sh_offset: %#lx\n", i, shdrs[i].sh_offset);
+
+	}
+
     // Create new section header
     // Elf64_Shdr new_shdr = {
     //     .sh_name = 0,
@@ -156,6 +161,7 @@ int main(void) {
     // ehdr->e_entry = new_section_addr;
 
 	ehdr->e_shoff += payload_size_p;
+	shdrs += payload_size_p;
 
 	if (msync(map, new_filesize, MS_SYNC) == -1) {
         perror("msync");
