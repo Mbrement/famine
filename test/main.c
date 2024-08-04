@@ -126,7 +126,12 @@ int main(void) {
 		printf("shdrs[%d].sh_offset: %#lx\n", i, shdrs[i].sh_offset);
 	}
 
+	if (msync(map, new_filesize, MS_SYNC) == -1) {
+		perror("msync");
+	}
+
 	memmove(shdrs + last_section_in_segment_index + 1, shdrs + last_section_in_segment_index, (ehdr->e_shnum - last_section_in_segment_index) * sizeof(Elf64_Shdr));
+	
 
     // Create new section header
 	// Elf64_Shdr new_shdr = {
