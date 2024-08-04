@@ -90,6 +90,8 @@ int main(void) {
         }
     }
 
+	last_section_in_segment_index += 1;
+
     if (!last_section_in_segment) {
         fprintf(stderr, "No section found in the last loadable segment\n");
         munmap(map, new_filesize);
