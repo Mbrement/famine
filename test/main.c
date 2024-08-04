@@ -119,6 +119,11 @@ int main(void) {
 
 	shdrs = (Elf64_Shdr *)((char *)map + ehdr->e_shoff);
 
+	for (size_t i = 0; i < ehdr->e_shnum; i++)
+	{
+		printf("shdrs[%lu].sh_offset: %p\n", i, shdrs[i]);
+	}
+
 	// Update section headers
 	printf("last_section_in_segment_index: %d %d\n", last_section_in_segment_index, ehdr->e_shnum);
 
@@ -162,6 +167,12 @@ int main(void) {
 	if (msync(map, new_filesize, MS_SYNC) == -1) {
 		perror("msync");
 	}
+
+	for (size_t i = 0; i < ehdr->e_shnum; i++)
+	{
+		printf("shdrs[%lu].sh_offset: %p\n", i, shdrs[i]);
+	}
+	
 
     // // Calculate the relative jump offset to the old entry point
     // int32_t jump_offset = (int32_t)(old_entry_point - (new_section_addr + payload_size_p - 5) - 5);
