@@ -117,6 +117,7 @@ _payload:
 
 	popx rax, rdi, rsi, rdx, r10
 	; jmp     [rel 0x0]
+	mov rax, 0
 	ret
 
 STATBUFFER		times 144 db 0
