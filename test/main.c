@@ -144,23 +144,23 @@ int main(void) {
 	}
 
     // Create new section header
-	// Elf64_Shdr new_shdr = {
-	// 	.sh_name = 0,
-	// 	.sh_type = SHT_PROGBITS,
-	// 	.sh_flags = SHF_ALLOC | SHF_EXECINSTR,
-	// 	.sh_addr = new_section_addr,
-	// 	.sh_offset = new_section_offset,
-	// 	.sh_size = payload_size_p,
-	// 	.sh_link = 0,
-	// 	.sh_info = 0,
-	// 	.sh_addralign = 1,
-	// 	.sh_entsize = 0
-	// };
+	Elf64_Shdr new_shdr = {
+		.sh_name = 0,
+		.sh_type = SHT_PROGBITS,
+		.sh_flags = SHF_ALLOC | SHF_EXECINSTR,
+		.sh_addr = new_section_addr,
+		.sh_offset = new_section_offset,
+		.sh_size = payload_size_p,
+		.sh_link = 0,
+		.sh_info = 0,
+		.sh_addralign = 1,
+		.sh_entsize = 0
+	};
 
-	// memcpy(shdrs + last_section_in_segment_index, &new_shdr, sizeof(Elf64_Shdr));
+	memcpy(shdrs + last_section_in_segment_index, &new_shdr, sizeof(Elf64_Shdr));
 
     // Update ELF header
-    // ehdr->e_shnum += 1;
+    ehdr->e_shnum += 1;
     // Update section header string table index
     ehdr->e_shstrndx += 1;
 
