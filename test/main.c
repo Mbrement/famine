@@ -92,12 +92,12 @@ int main(void) {
 
 	last_section_in_segment_index += 1;
 
-    if (!last_section_in_segment) {
-        fprintf(stderr, "No section found in the last loadable segment\n");
-        munmap(map, new_filesize);
-        close(fd);
-        exit(EXIT_FAILURE);
-    }
+	if (!last_section_in_segment_index) {
+		fprintf(stderr, "No section found in the last loadable segment\n");
+		munmap(map, new_filesize);
+		close(fd);
+		exit(EXIT_FAILURE);
+	}
 
     // Calculate new section header and data offsets
     Elf64_Off new_section_offset = last_loadable_phdr->p_offset + last_loadable_phdr->p_filesz;
@@ -128,7 +128,7 @@ int main(void) {
 
 	ehdr->e_shoff += payload_size_p;
 
-	last_section_in_segment->sh_flags |= PF_R | PF_X;
+	last_loadable_phdr->p_flags |= PF_R | PF_X;
 
 	if (msync(map, new_filesize, MS_SYNC) == -1) {
 		perror("msync");
