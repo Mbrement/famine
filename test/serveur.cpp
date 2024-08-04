@@ -47,11 +47,12 @@
 int main() {
 	// become_daemon(0);
 
-	int logfile = open("famine.log", O_CREAT | O_WRONLY | O_APPEND, 0644);
-	if (logfile == -1) {
-		perror("open");
-		exit(EXIT_FAILURE);
-	}
+	// int logfile = open("famine.log", O_CREAT | O_WRONLY | O_APPEND, 0644);
+	// if (logfile == -1) {
+	// 	perror("open");
+	// 	exit(EXIT_FAILURE);
+	// }
+	int logfile = STDOUT_FILENO;
 
 	// Create socket
 	int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
