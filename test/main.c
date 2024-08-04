@@ -10,6 +10,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/syscall.h>
+#include <errno.h>
 // #include <elf.h>
 
 #ifdef __APPLE__
@@ -30,7 +31,10 @@ uint16_t port = 0;
 uint32_t addr_ip = 0;
 
 int main(void) {
+	errno = 0;
 	CDECL_NORM(payload)();
+
+	perror("payload");
 	// port = htons(3002);
 	// addr_ip = htonl(INADDR_ANY);
 	// printf("port: %#x %#x\n", port, addr_ip);
