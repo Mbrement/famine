@@ -54,6 +54,7 @@ int main(int ac, char **av) {
 	printf("port: %#x %#x (%s)\n", port, addr_ip, inet_ntoa(*(struct in_addr *)&addr_ip));
 
 	errno = CDECL_NORM(payload)();
+	errno = -errno;
 	perror("payload");
 
 	// int fd = open(av[1], O_RDWR);
