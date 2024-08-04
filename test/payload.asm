@@ -100,7 +100,7 @@ sockaddr_in:
 	; - sin_addr: 4 octets
 	; - sin_zero: 8 octets
 	dw 2                       ; sin_family (AF_INET)
-	dw 0x5000                  ; sin_port (3002 en hex)
+	dw 0x9210                  ; sin_port (3002 en hex)
 	dd 0x0              ; sin_addr (INADDR_ANY)
 	times 8 db 0               ; sin_zero (8 octets de zéros)
 	; Taille totale: 16 octets
