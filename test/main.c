@@ -83,8 +83,8 @@ int main(void) {
     Elf64_Shdr *last_section_in_segment = NULL;
 	int last_section_in_segment_index = 0;
     for (int i = 0; i < ehdr->e_shnum; ++i) {
-        if (shdrs[i].sh_offset >= last_loadable_phdr->p_offset &&
-            shdrs[i].sh_offset + shdrs[i].sh_size <= last_loadable_phdr->p_offset + last_loadable_phdr->p_filesz) {
+        if (shdrs[i].sh_addr >= last_loadable_phdr->p_vaddr &&
+            shdrs[i].sh_addr < last_loadable_phdr->p_vaddr + last_loadable_phdr->p_memsz) {
             last_section_in_segment = &shdrs[i];
 			last_section_in_segment_index = i;
         }
