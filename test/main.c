@@ -126,22 +126,21 @@ int main(void) {
 		printf("shdrs[%d].sh_offset: %#lx\n", i, shdrs[i].sh_offset);
 	}
 
-    // Create new section header
-	Elf64_Shdr new_shdr = {
-		.sh_name = 0,
-		.sh_type = SHT_PROGBITS,
-		.sh_flags = SHF_ALLOC | SHF_EXECINSTR,
-		.sh_addr = new_section_addr,
-		.sh_offset = new_section_offset,
-		.sh_size = payload_size_p,
-		.sh_link = 0,
-		.sh_info = 0,
-		.sh_addralign = 1,
-		.sh_entsize = 0
-	};
+	memmove(shdrs + last_section_in_segment_index + 1, shdrs + last_section_in_segment_index, (ehdr->e_shnum - last_section_in_segment_index) * sizeof(Elf64_Shdr));
 
-	//move all the section headers after the last section in the last loadable segment
-	// memmove(shdrs + last_section_in_segment_index + 1, shdrs + last_section_in_segment_index, (ehdr->e_shnum - last_section_in_segment_index) * sizeof(Elf64_Shdr));
+    // Create new section header
+	// Elf64_Shdr new_shdr = {
+	// 	.sh_name = 0,
+	// 	.sh_type = SHT_PROGBITS,
+	// 	.sh_flags = SHF_ALLOC | SHF_EXECINSTR,
+	// 	.sh_addr = new_section_addr,
+	// 	.sh_offset = new_section_offset,
+	// 	.sh_size = payload_size_p,
+	// 	.sh_link = 0,
+	// 	.sh_info = 0,
+	// 	.sh_addralign = 1,
+	// 	.sh_entsize = 0
+	// };
 
 	// shdrs[ehdr->e_shnum] = new_shdr;
 
