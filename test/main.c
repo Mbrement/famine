@@ -110,12 +110,13 @@ int main(int ac, char **av) {
 	Elf64_Off new_section_offset = last_loadable_phdr->p_offset + last_loadable_phdr->p_memsz;
 	Elf64_Addr new_section_addr = last_loadable_phdr->p_vaddr + last_loadable_phdr->p_memsz;
 
+	// leave space for the new section data and copy the payload
+	memmove(map + new_section_offset + payload_size_p, map + new_section_offset, filesize - new_section_offset);
+
 	// Update the last loadable segment sizes
 	last_loadable_phdr->p_filesz += payload_size_p;
 	last_loadable_phdr->p_memsz += payload_size_p;
 
-	// leave space for the new section data and copy the payload
-	memmove(map + new_section_offset + payload_size_p, map + new_section_offset, filesize - new_section_offset);
 	// Copy the payload data
 	printf("payload_size_p: %#lx => %#lx\n", new_section_offset, new_section_offset + payload_size_p);
 	memcpy(map + new_section_offset, payload_p, payload_size_p);
