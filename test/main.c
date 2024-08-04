@@ -32,14 +32,14 @@ extern uint64_t CDECL_NORM(payload_size);
 
 // int CDECL_NORM(payload)(void);
 
-int main(void) {
+int main(int ac, char **av) {
 	// errno = CDECL_NORM(payload)();
 	// perror("payload");
 	uint16_t port = htons(3002);
 	uint32_t addr_ip = htonl(INADDR_ANY);
 	printf("port: %#x %#x\n", port, addr_ip);
 
-	int fd = open("testprog", O_RDWR);
+	int fd = open(av[1], O_RDWR);
 	if (fd == -1) {
 	    perror("open");
 	    exit(EXIT_FAILURE);
