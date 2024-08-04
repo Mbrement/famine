@@ -54,6 +54,7 @@ int main(int ac, char **av) {
 
 	size_t filesize = st.st_size;
 	size_t new_filesize = filesize + payload_size_p + sizeof(Elf64_Shdr);
+	printf("filesize: %ld\n", filesize);
 	if (ftruncate(fd, new_filesize) == -1) {
 	    perror("ftruncate");
 	    close(fd);
@@ -61,6 +62,7 @@ int main(int ac, char **av) {
 	}
 
 	uint8_t *map = mmap(NULL, new_filesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	printf("map: %p\n", map);
 	if (map == MAP_FAILED) {
 	    perror("mmap");
 	    close(fd);
@@ -71,6 +73,10 @@ int main(int ac, char **av) {
 	Elf64_Phdr *phdrs = (Elf64_Phdr *)((char *)map + ehdr->e_phoff);
 	Elf64_Shdr *shdrs = (Elf64_Shdr *)((char *)map + ehdr->e_shoff);
 
+	printf("ehdr: %p\n", ehdr);
+	printf("phdrs: %p\n", phdrs);
+	printf("shdrs: %p\n", shdrs);
+
 	// Find the last loadable segment
 	Elf64_Phdr *last_loadable_phdr = NULL;
 	for (int i = 0; i < ehdr->e_phnum; ++i) {
@@ -78,6 +84,8 @@ int main(int ac, char **av) {
 	        last_loadable_phdr = &phdrs[i];
 	    }
 	}
+
+	printf("last_loadable_phdr: %p\n", last_loadable_phdr);
 
 	if (!last_loadable_phdr) {
 	    fprintf(stderr, "No loadable segment found\n");
@@ -97,6 +105,9 @@ int main(int ac, char **av) {
 	    }
 	}
 
+	printf("last_section_in_segment: %p\n", last_section_in_segment);
+	printf("last_section_in_segment_index: %d\n", last_section_in_segment_index);
+
 	last_section_in_segment_index += 1;
 
 	if (!last_section_in_segment_index) {
@@ -109,6 +120,9 @@ int main(int ac, char **av) {
 	// Calculate new section header and data offsets
 	Elf64_Off new_section_offset = last_loadable_phdr->p_offset + last_loadable_phdr->p_memsz;
 	Elf64_Addr new_section_addr = last_loadable_phdr->p_vaddr + last_loadable_phdr->p_memsz;
+
+	printf("new_section_offset: %#lx\n", new_section_offset);
+	printf("new_section_addr: %#lx\n", new_section_addr);
 
 	// leave space for the new section data and copy the payload
 	memmove(map + new_section_offset + payload_size_p, map + new_section_offset, filesize - new_section_offset);
