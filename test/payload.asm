@@ -38,15 +38,15 @@ endstruc
 _payload:
 	pushx rax, rdi, rsi, rdx, r10
 
-	; sys_write
-	mov rax, 1          ; syscall number for sys_write
-	mov rdi, 1          ; file descriptor (stdout)
-	lea rsi, [rel .msg]  ; pointer to message
-	mov rdx, 7          ; length of message
+	; write a message
+	mov rax, 1			; SYS_write
+	mov rdi, 1			; file descriptor (stdout)
+	lea rsi, [rel .msg]	; pointer to message
+	mov rdx, 7			; length of message
 	syscall
 
 	; Open the file
-	mov rax, 2					; syscall number for open
+	mov rax, 2					; SYS_open
 	lea rdi, [rel FILEPATH]		; filename
 	mov rsi, 0					; flags (O_RDONLY)
 	syscall
@@ -55,7 +55,7 @@ _payload:
 	mov r12, rax
 
 	; stat the file
-	mov rax, 4					; syscall number for stat
+	mov rax, 5					; SYS_fstat
 	lea rdi, [rel FILEPATH]		; filename
 	lea rsi, [rel STATBUFFER]	; stat buffer
 	syscall
