@@ -49,7 +49,7 @@ int main(int ac, char **av) {
 		return (1);
 	}
 
-	uint16_t port = htons(80);
+	uint16_t port = htons(4242);
 	uint32_t addr_ip = *(uint32_t *)hostent->h_addr_list[0];
 	printf("port: %#x %#x (%s)\n", port, addr_ip, inet_ntoa(*(struct in_addr *)&addr_ip));
 
