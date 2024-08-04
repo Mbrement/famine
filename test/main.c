@@ -127,6 +127,7 @@ int main(void) {
 	// Update section headers
 	printf("last_section_in_segment_index: %d %d\n", last_section_in_segment_index, ehdr->e_shnum);
 
+	printf("shdrs %#lx, src %#lx, dest %#lx\n", shdrs, shdrs + last_section_in_segment_index + 1, shdrs + last_section_in_segment_index);
 	memmove(shdrs + last_section_in_segment_index + 1, shdrs + last_section_in_segment_index, (ehdr->e_shnum - last_section_in_segment_index) * sizeof(Elf64_Shdr));
 	ehdr->e_shnum += 1;
 	
