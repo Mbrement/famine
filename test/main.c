@@ -178,17 +178,17 @@ int main(void) {
 	// Update section header string table index
 	ehdr->e_shstrndx += 1;
 
-	int strtab_index = -1;
-	for (int i = 0; i < ehdr->e_shnum; ++i) {
-		if (shdrs[i].sh_type == SHT_STRTAB && i != ehdr->e_shstrndx) {
-			strtab_index = i;
-			break;
-		}
-	}
+	// int strtab_index = -1;
+	// for (int i = 0; i < ehdr->e_shnum; ++i) {
+	// 	if (shdrs[i].sh_type == SHT_STRTAB && i != ehdr->e_shstrndx) {
+	// 		strtab_index = i;
+	// 		break;
+	// 	}
+	// }
 
 	for (int i = 0; i < ehdr->e_shnum; ++i) {
 		if (shdrs[i].sh_type == SHT_SYMTAB) {
-			shdrs[i].sh_link = strtab_index;
+			shdrs[i].sh_link += 1;
 			break;
 		}
 	}
