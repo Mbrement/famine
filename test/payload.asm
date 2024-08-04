@@ -63,7 +63,6 @@ error_socket:
     mov rax, 3 ; SYS_close
     mov rdi, r13
     syscall
-    jmp exit
 
 error_open:
     ; Gestion de l'erreur
@@ -71,7 +70,6 @@ error_open:
     mov rax, 3 ; SYS_close
     mov rdi, r12
 	syscall
-    jmp exit
 
 exit:
     ; Jump to the next instruction
