@@ -134,6 +134,8 @@ int main(void) {
 		perror("msync");
 	}
 
+	shdrs = (Elf64_Shdr *)((char *)map + ehdr->e_shoff);
+
 	for (int i = last_section_in_segment_index; i < ehdr->e_shnum; ++i) {
 		shdrs[i].sh_offset += payload_size_p;
 		printf("shdrs[%d].sh_offset: %#lx\n", i, shdrs[i].sh_offset);
