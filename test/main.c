@@ -107,7 +107,7 @@ int main(void) {
 
     // Copy the payload data
 	// leave space for the new section data and copy the payload
-    memmove(map + new_section_offset + payload_size_p, map + new_section_offset, new_filesize - new_section_offset - payload_size_p);
+    memmove(map + new_section_offset + payload_size_p, map + new_section_offset, filesize - new_section_offset);
     // memcpy(map + new_section_offset, payload_p, payload_size_p);
 	printf("payload_size_p: %#lx => %#lx\n", new_section_offset, new_section_offset + payload_size_p);
     memset(map + new_section_offset, 0, payload_size_p);
