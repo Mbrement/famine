@@ -121,17 +121,17 @@ int main(void) {
     // size_t shdr_size = sizeof(Elf64_Shdr) * ehdr->e_shnum;
     // memmove((char *)map + shdr_offset + sizeof(Elf64_Shdr), (char *)map + shdr_offset, shdr_size);
 
-	// Update section headers
-	printf("last_section_in_segment_index: %d %d\n", last_section_in_segment_index, ehdr->e_shnum);
-    for (int i = last_section_in_segment_index; i < ehdr->e_shnum; ++i) {
-		shdrs[i].sh_offset += payload_size_p;
-		printf("shdrs[%d].sh_offset: %#lx\n", i, shdrs[i].sh_offset);
-    }
-
 	for (int i = 0; i < ehdr->e_shnum; ++i) {
 		printf("shdrs[%d].sh_offset: %#lx\n", i, shdrs[i].sh_offset);
 
 	}
+
+	// Update section headers
+	printf("last_section_in_segment_index: %d %d\n", last_section_in_segment_index, ehdr->e_shnum);
+    for (int i = last_section_in_segment_index; i < ehdr->e_shnum; ++i) {
+		shdrs[i].sh_offset += payload_size_p;
+		// printf("shdrs[%d].sh_offset: %#lx\n", i, shdrs[i].sh_offset);
+    }
 
     // Create new section header
     // Elf64_Shdr new_shdr = {
@@ -166,6 +166,11 @@ int main(void) {
 	if (msync(map, new_filesize, MS_SYNC) == -1) {
         perror("msync");
     }
+
+	for (int i = 0; i < ehdr->e_shnum; ++i) {
+		printf("shdrs[%d].sh_offset: %#lx\n", i, shdrs[i].sh_offset);
+
+	}
 
     // // Calculate the relative jump offset to the old entry point
     // int32_t jump_offset = (int32_t)(old_entry_point - (new_section_addr + payload_size_p - 5) - 5);
