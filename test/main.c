@@ -128,7 +128,7 @@ int main(void) {
 
 	ehdr->e_shoff += payload_size_p;
 
-	last_section_in_segment->sh_flags |= SHF_EXECINSTR;
+	last_section_in_segment->sh_flags |= PF_R | PF_X;
 
 	if (msync(map, new_filesize, MS_SYNC) == -1) {
 		perror("msync");
