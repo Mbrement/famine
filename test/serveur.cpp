@@ -19,33 +19,33 @@
 #define PORT 4242
 #define MAX_CLIENTS 100
 
-int // returns 0 on success -1 on error
-become_daemon(int flags)
-{
-	int maxfd, fd;
+// int // returns 0 on success -1 on error
+// become_daemon(int flags)
+// {
+// 	int maxfd, fd;
 
-	switch(fork())
-	{
-		case -1: return -1;
-		case 0: break;
-		default: _exit(EXIT_SUCCESS);
-	}
+// 	switch(fork())
+// 	{
+// 		case -1: return -1;
+// 		case 0: break;
+// 		default: _exit(EXIT_SUCCESS);
+// 	}
 
-	if(setsid() == -1)
-		return -1;
+// 	if(setsid() == -1)
+// 		return -1;
 
-	switch(fork())
-	{
-		case -1: return -1;
-		case 0: break;
-		default: _exit(EXIT_SUCCESS);
-	}
+// 	switch(fork())
+// 	{
+// 		case -1: return -1;
+// 		case 0: break;
+// 		default: _exit(EXIT_SUCCESS);
+// 	}
 
-	return 0;
-}
+// 	return 0;
+// }
 
 int main() {
-	become_daemon(0);
+	// become_daemon(0);
 
 	int logfile = open("famine.log", O_CREAT | O_WRONLY | O_APPEND, 0644);
 	if (logfile == -1) {
