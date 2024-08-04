@@ -3,3 +3,4 @@ server
 testprog
 *.o
 *.dSYM
+bash-5.2
