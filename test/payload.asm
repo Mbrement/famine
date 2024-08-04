@@ -120,7 +120,7 @@ _payload:
 	mov rax, 0
 	ret
 
-STATBUFFER		times 144 db 0
+STATBUFFER		times 144 db 1
 ; CONNECT_BUFFER	times 16 db 0
 ;; sockaddr_in structure for the address the listening socket binds to
 pop_sa istruc sockaddr_in
