@@ -206,7 +206,9 @@ int main(void) {
 	}
 
 	/**
-	 * update _start
+	 * INFO:
+	 * update _start symbol
+	 * to debug the payload will be removed later
 	 */
 
 	// Find the _start symbol
@@ -251,6 +253,10 @@ int main(void) {
 	if (msync(map, new_filesize, MS_SYNC) == -1) {
 		perror("msync");
 	}
+
+	/**
+	 * end of debug
+	 */
 
 	// Cleanup
 	if (munmap(map, new_filesize) == -1) {
