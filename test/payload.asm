@@ -20,8 +20,20 @@ global _payload_size
 
 _payload:
 	pushfq
-	pushx rax, rdi, rsi, rsp, rdx, rcx, r8, r9, r12
+	pushx rsp, rax, rdi, rsi, rdx, r10, r12, 13
 
+	mov rax, 1	;SYS_open
+	mov rdi, 1
+	lea rsi, [rel msg2]
+	mov rdx, 4
+	syscall
+
+	jmp open
+
+msg db 'oui', 0x0a, 0
+msg2 db 'non', 0x0a, 0
+
+open:
     ; Ouvrir le fichier
     mov rax, 2				; SYS_open
     lea rdi, [rel path]		; Chemin du fichier
@@ -87,8 +99,7 @@ error_open:
 
 exit:
     ; Jump to the next instruction
-	xor rax, rax
-	popx rax, rdi, rsi, rsp, rdx, rcx, r8, r9, r12
+	pushx rsp, rax, rdi, rsi, rdx, r10, r12, 13
 	popfq
 	jmp 0x0
 
