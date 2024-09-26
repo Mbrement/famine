@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/25 21:56:48 by mgama            ###   ########.fr       */
+/*   Updated: 2024/09/26 10:36:31 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,12 +122,14 @@ void interruptHandler(int sig)
 }
 
 /**
- * Because the program canoot set any variable when crashing and catching
- * error signals (SIGSEGV, SIGILL, etc.) the program should exit in a clean way.
+ * Because the program cannot acces to memory anymore when crashing and catching
+ * error signals (SIGSEGV, SIGILL, etc.) it cannot set any variable so the `normal`
+ * clean exit cannot be done, so we simply write the program back and exit.
  */
 void errorHandler(int sig)
 {
 	(void)sig;
+	write_back_prog();
 	exit(0);
 }
 
