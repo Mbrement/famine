@@ -3,18 +3,36 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <fcntl.h>
+
 #include <arpa/inet.h>
 #include <netinet/in.h>
+
 #include <sys/socket.h>
 #include <sys/poll.h>
+#include <sys/time.h>
+
 #include <vector>
 #include <iostream>
 
-#define MAX_EVENTS 10
-#define PORT 3002
-#define MAX_CLIENTS 100
+#define _FM_MAX_EVENTS 10
+#define _FM_PORT 4242
+
+#define _QUOTE(str) #str
+#define _MAKE_STR(str) _QUOTE(str)
+
+#ifndef FM_LOG_FILE_PATH
+#error "You must provide a log file path with -DFM_LOG_FILE_PATH"
+#endif /* FM_LOG_FILE_PATH */
+#define _FM_LOG_FILE_PATH _MAKE_STR(FM_LOG_FILE_PATH)
 
 int main() {
+	int filelog = open(_FM_LOG_FILE_PATH, O_CREAT | O_WRONLY | O_APPEND, 0755);
+	if (filelog == -1) {
+		dprintf(STDERR_FILENO, "open: %s: %s\n", _FM_LOG_FILE_PATH, strerror(errno));
+		return (1);
+	}
+
 	// Create socket
 	int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (socket_fd == 0)
@@ -34,7 +52,7 @@ int main() {
 	struct sockaddr_in socket_addr;
 	socket_addr.sin_family = AF_INET;
 	socket_addr.sin_addr.s_addr = INADDR_ANY;
-	socket_addr.sin_port = htons(PORT);
+	socket_addr.sin_port = htons(_FM_PORT);
 
 	// Bind socket to socket_addr and port
 	if (bind(socket_fd, (struct sockaddr *)&socket_addr, sizeof(socket_addr)) < 0)
@@ -44,13 +62,13 @@ int main() {
 	}
 
 	// Listen for incoming connections
-	if (listen(socket_fd, MAX_EVENTS) < 0)
+	if (listen(socket_fd, _FM_MAX_EVENTS) < 0)
 	{
 		perror("Listen failed");
 		exit(EXIT_FAILURE);
 	}
 
-	printf("Server listening on port %d...\n", PORT);
+	dprintf(filelog, "Server listening on port %d...\n", _FM_PORT);
 
 	std::vector<pollfd>		poll_fds;
 
@@ -82,7 +100,7 @@ int main() {
 						exit(EXIT_FAILURE);
 					}
 
-					printf("New connection accepted\n");
+					dprintf(filelog, "New connection accepted on %d\n", new_socket_fd);
 
 					// Add new client to poll set
 					poll_fds.push_back((pollfd){new_socket_fd, POLLIN, 0});
@@ -95,13 +113,13 @@ int main() {
 					if (valread == 0)
 					{
 						// Client disconnected
-						printf("Client disconnected\n");
+						dprintf(filelog, "Client disconnected on %d\n", poll_fds[i].fd);
 						close(poll_fds[i].fd);
 						to_remove.push_back(i);
 					}
 					else
 					{
-						printf("Received: %s\n", buffer);
+						dprintf(filelog, "Received [%d]: %s\n", poll_fds[i].fd, buffer);
 					}
 				}
 			}
