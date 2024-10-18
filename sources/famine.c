@@ -281,8 +281,10 @@ int main(int argc, char **argv, char *const * envp)
 	while ((ch = ft_getopt(&options, optlist, NULL)) != -1) {
 		switch (ch) {
 			case 0:
-				if (FM_SECURITY == 1)
+				if (FM_SECURITY == 1){
+					printf("no you don't\n");
 					exit(0);
+				}
 				option |= F_CUSTOM;
 				target = options.optarg;
 				break;
