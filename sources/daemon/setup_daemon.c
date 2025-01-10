@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/02 02:41:06 by mgama             #+#    #+#             */
-/*   Updated: 2024/08/02 17:24:25 by mgama            ###   ########.fr       */
+/*   Updated: 2025/01/10 20:14:43 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,11 @@
 #include "pcolors.h"
 
 // const char launchd_plist[] = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n<key>Label</key>\n<string>famine</string>\n<key>ProgramArguments</key>\n<array>\n<string>/usr/local/bin/famine</string>\n<%= @args %></array>\n<key>RunAtLoad</key>\n<true/>\n<key>KeepAlive</key>\n<true/>\n<key>StandardOutPath</key>\n<string>/var/log/famine.out</string>\n<key>StandardErrorPath</key>\n<string>/var/log/famine.err</string>\n</dict>\n</plist>\n";
+#ifdef __APPLE__
 const char launchd_plist[] = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n<key>Label</key>\n<string>famine</string>\n<key>ProgramArguments</key>\n<array>\n<string>/usr/local/bin/famine</string>\n<%= @args %></array>\n<key>RunAtLoad</key>\n<true/>\n<key>KeepAlive</key>\n<true/>\n</dict>\n</plist>\n";
+#else 
 const char systemd_service[] = "[Unit]\nDescription=Famine\nAfter=network.target\n\n[Service]\nType=simple\nExecStart=/usr/local/bin/famine <%= @args %>\nRestart=on-failure\n\n[Install]\nWantedBy=multi-user.target";
+#endif /* __APPLE__ */
 
 int
 spawn_command(char *const *argv, char *const *envp)
