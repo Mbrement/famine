@@ -1,6 +1,8 @@
 #include <stdio.h>
 
+extern void _payload(void);
+
 int main()
 {
-	printf("hello world\n");
+	_payload();
 }

