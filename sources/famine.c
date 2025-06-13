@@ -404,8 +404,9 @@ int main(int argc, char **argv, char *const * envp)
 	 * to remove it on runtime.
 	 */
 	g_famine.me = mmap(NULL, g_famine.len, PROT_READ, MAP_PRIVATE, fd, 0);
+	// g_famine.me = NULL;
 	close(fd);
-	if (g_famine.me == NULL)
+	if (g_famine.me == MAP_FAILED)
 		return (write_back_prog());
 
 	ft_verbose("%s%s%s dumped\n", B_GREEN, g_famine.name, RESET);
