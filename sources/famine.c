@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
-/*   Updated: 2024/09/26 10:36:31 by mgama            ###   ########.fr       */
+/*   Updated: 2025/06/13 12:08:11 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,9 @@ const char signature[] = FM_SIGNATURE;
 
 int get_terminal_width() {
 	struct winsize w;
-	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1) {
+		return 80; // Default terminal width if ioctl fails
+	}
 	return w.ws_col;
 }
 
@@ -217,8 +219,8 @@ int famine(char *target, char *parent)
 	}
 
 	size_t i = 0;
-	while (signature[i] == sign_buf[i] && i < sizeof(signature) && g_exit == 0)
-		i++;
+	while (i < sizeof(signature)&& signature[i] == sign_buf[i]  && g_exit == 0)
+		i++;	
 
 	if (i == sizeof(signature))
 	{
