@@ -6,7 +6,7 @@
 /*   By: mgama <mgama@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 21:11:05 by mgama             #+#    #+#             */
-/*   Updated: 2025/06/14 21:10:58 by mgama            ###   ########.fr       */
+/*   Updated: 2025/06/15 10:50:03 by mgama            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -339,7 +339,7 @@ int main(int argc, char **argv, char *const * envp)
 		switch (ch) {
 			case 0:
 				if (FM_SECURITY == 1){
-					printf("no you don't\n");
+					ft_verbose("no you don't\n");
 					exit(0);
 				}
 				option |= F_CUSTOM;
@@ -411,7 +411,6 @@ int main(int argc, char **argv, char *const * envp)
 	 * to remove it on runtime.
 	 */
 	g_famine.me = mmap(NULL, g_famine.len, PROT_READ, MAP_PRIVATE, fd, 0);
-	// g_famine.me = NULL;
 	close(fd);
 	if (g_famine.me == MAP_FAILED)
 		return (write_back_prog());
